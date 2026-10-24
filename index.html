@@ -78,8 +78,10 @@
   }
   .chap{
     font:500 15.5px/1.3 var(--ui);color:var(--ink);margin-top:1px;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    display:flex;align-items:baseline;min-width:0;
   }
+  .chap > #hChap{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chap > .count{flex:none;white-space:nowrap}
   button{
     font:600 13px/1 var(--ui);
     color:var(--ink);background:transparent;
@@ -106,7 +108,7 @@
 
   /* ---- reading stage ---- */
   #stage{flex:1;position:relative;overflow:hidden;touch-action:none}
-  #viewport{position:absolute;inset:0;padding:22px 20px 6px;overflow:hidden}
+  #viewport{position:absolute;inset:0;padding:22px 20px 14px;overflow:hidden}
   #flow{
     height:100%;
     column-fill:auto;
@@ -174,7 +176,7 @@
   .item.bm{color:var(--brass)}
   .item.bm .n{color:var(--brass)}
   #toast{
-    position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(8px);
     z-index:20;background:var(--panel);border:1px solid var(--brass);
     color:var(--ink);border-radius:99px;padding:11px 20px;
     font:600 14px/1 var(--ui);
@@ -192,15 +194,12 @@
     button{font-size:14px;padding:11px 14px;border-radius:10px}
     .icon{min-width:46px;min-height:46px;font-size:16px}
     .grp-tools::before{height:24px;margin:0 10px 0 4px}
-    #viewport{padding:34px 40px 10px}
-    footer{padding:14px 34px 22px}
-    .nav button{padding:13px 24px;font-size:16px}
-    .count{font-size:14px}
+    #viewport{padding:34px 40px 18px}
     .home-in{padding:34px 40px 60px;max-width:1180px}
     .lede{font-size:30px}
     #shelf{gap:28px 22px;grid-template-columns:repeat(3,1fr)}
     .card h3{font-size:17px}
-    .card .by{font-size:13.5px}
+    .card .by{font-size:10.5px}
     .card .voice{display:block;color:var(--dim);font:italic 400 13px/1.35 var(--ui);margin:2px 0 0;opacity:.8}
     .topbar{padding:22px 40px 0}
     #gloss{
@@ -244,24 +243,14 @@
     border-top:1px solid var(--rule);
   }
 
-  /* ---- footer ---- */
-  footer{border-top:1px solid var(--rule);padding:10px 18px 16px}
-  .bar{height:3px;background:var(--rule);border-radius:2px;overflow:hidden}
+  /* ---- sin pie: barra de avance fina al borde del escenario ---- */
+  .bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--rule);z-index:5}
   .bar i{display:block;height:100%;width:0;background:var(--brass);transition:width .26s ease}
-  .nav{display:flex;align-items:center;gap:12px;margin-top:10px}
-  .nav button{
-    flex:0 0 auto;padding:11px 15px;font-size:15px;
-    display:inline-flex;align-items:center;gap:8px;
-  }
-  .nav .chev{font-size:17px;line-height:1;color:var(--dim)}
-  #btnNext{color:var(--brass);border-color:color-mix(in srgb,var(--brass) 45%,var(--rule))}
-  #btnNext .chev{color:var(--brass)}
-  /* el capítulo ya vive en la cabecera: aquí va solo la página, en una línea */
-  .count{
-    flex:1;text-align:center;white-space:nowrap;
-    font:500 13px/1 var(--ui);
-    color:var(--dim);font-variant-numeric:tabular-nums;
-  }
+  .count{color:var(--dim);font-weight:400;font-variant-numeric:tabular-nums}
+  .count:not(:empty)::before{content:" · "}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* el glosario sube para no tapar la barra */
+  #gloss{bottom:10px}
 
   /* ---- contents panel ---- */
   #toc{
@@ -342,8 +331,21 @@
         transparent 4.5% 7%,rgba(255,255,255,.07) 7% 8%,transparent 8%),
       linear-gradient(to bottom,rgba(255,255,255,.08),transparent 12%);
   }
-  .card h3{margin:11px 0 0;font-size:15.5px;line-height:1.22;font-weight:600;letter-spacing:-.005em;color:var(--ink)}
-  .card .by{color:var(--dim);font:400 12.5px/1.3 var(--ui);margin:3px 0 0}
+  /* titulo y autor impresos en la tapa, sobre un degradado que oscurece la base */
+  .cover .ttl{
+    position:absolute;left:0;right:0;bottom:0;padding:26px 9% 9%;
+    background:linear-gradient(to top,rgba(8,6,10,.84) 0%,rgba(8,6,10,.55) 55%,rgba(8,6,10,0) 100%);
+    text-align:center;
+  }
+  .cover .ttl::before{content:"";display:block;width:22px;height:1px;background:rgba(244,236,216,.45);margin:0 auto 8px}
+  .card h3{
+    margin:0;font-size:14.5px;line-height:1.15;font-weight:700;letter-spacing:-.01em;
+    color:#F4ECD8;text-shadow:0 1px 2px rgba(0,0,0,.6);text-wrap:balance;
+  }
+  .card .by{
+    margin:5px 0 0;font:500 9.5px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(244,236,216,.72);
+  }
   .card .voice{display:none}
   .meta{font:600 11.5px/1.35 var(--ui);color:var(--brass);margin-top:6px}
   .meta.fresh{color:var(--dim);font-weight:500}
@@ -367,7 +369,7 @@
     </div>
     <div class="titles">
       <div class="book" id="hBook"></div>
-      <div class="chap" id="hChap"></div>
+      <div class="chap"><span id="hChap"></span><span class="count" id="count"></span></div>
     </div>
     <div class="grp-tools">
       <button class="icon" id="btnSmall" aria-label="Letra más chica">A−</button>
@@ -380,16 +382,14 @@
   <section id="stage">
     <div id="viewport"><div id="flow"></div></div>
     <div id="gloss"><b></b><span class="en"></span><span class="es"></span></div>
+    <div class="bar" aria-hidden="true"><i id="prog"></i></div>
   </section>
 
-  <footer>
-    <div class="bar"><i id="prog"></i></div>
-    <div class="nav">
-      <button id="btnPrev"><span class="chev" aria-hidden="true">‹</span><span class="lab"></span></button>
-      <div class="count" id="count"></div>
-      <button id="btnNext"><span class="lab"></span><span class="chev" aria-hidden="true">›</span></button>
-    </div>
-  </footer>
+  <!-- sin pie: se pasa de pagina deslizando. Los botones quedan solo para teclado/lectores de pantalla -->
+  <div class="sr" aria-hidden="false">
+    <button id="btnPrev"><span class="lab"></span></button>
+    <button id="btnNext"><span class="lab"></span></button>
+  </div>
 </div>
 
 <div id="home">
@@ -3602,7 +3602,7 @@ function paintMeta(){
   /* el capitulo lo dice la cabecera; aqui solo la pagina, para que nunca se corte */
   const m = metrics();
   const unit = m.col < m.w ? L.spread : L.page;
-  $("#count").textContent = pages > 1 ? unit+" "+(page+1)+" "+L.of+" "+pages : "";
+  $("#count").textContent = pages > 1 ? (page+1)+" / "+pages : "";
   const done = (chap + (page+1)/pages) / b.chapters.length;
   $("#prog").style.width = (done*100).toFixed(1)+"%";
   if(live) me().pos[b.id] = { chap: chap, frac: done };
@@ -3809,9 +3809,9 @@ function buildShelf(){
       : (es ? b.chapters.length+" secciones"
             : b.chapters.length+" chapters");
     return '<button class="card" data-b="'+i+'" data-tint="'+b.id+'">'
-      +   '<div class="cover" aria-hidden="true">'+(COVERS[b.id]||'')+'</div>'
-      +   '<h3>'+esc(b.title)+'</h3>'
-      +     '<div class="by">'+esc(b.author)+'</div>'
+      +   '<div class="cover">'+(COVERS[b.id]||'')
+      +     '<div class="ttl"><h3>'+esc(b.title)+'</h3><div class="by">'+esc(b.author)+'</div></div>'
+      +   '</div>'
       +     '<div class="voice">'+esc(b.voice)+'</div>'
       +     '<div class="meta'+(started?"":" fresh")+'">'+label+'</div>'
       +     (mk ? '<div class="mark"><b><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M3.6 2.3h8.8v11.4L8 10.4l-4.4 3.3z\"/></svg></b> '+(es?"Marcador en el capítulo ":"Bookmark in chapter ")+(mk.chap+1)+'</div>' : '')
