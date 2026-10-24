@@ -17,7 +17,15 @@
     --rule:#2A3644;
     --size:21px;
     --lh:1.65;
+    --ui:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   }
+  /* la tela de cada libro: una repisa se lee por color, no por texto */
+  [data-tint="bb"]{--cloth:#8A5A33}
+  [data-tint="ot"]{--cloth:#495A51}
+  [data-tint="np"]{--cloth:#C2742C}
+  [data-tint="aq"]{--cloth:#3C6A49}
+  [data-tint="dr"]{--cloth:#7B2B2E}
+  [data-tint="sl"]{--cloth:#59738E}
   [data-theme="amber"]{
     --bg:#1B1611;
     --panel:#241D16;
@@ -46,32 +54,42 @@
 
   /* ---- header ---- */
   header{
-    padding:12px 14px 10px;
-    display:flex;align-items:center;gap:7px;
+    padding:8px 8px 8px 6px;
+    display:flex;align-items:center;gap:2px;
     border-bottom:1px solid var(--rule);
   }
-  .titles{flex:1;min-width:0}
+  .titles{flex:1;min-width:0;padding:0 8px}
   .book{
-    font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.16em;text-transform:uppercase;color:var(--brass);
+    font:400 13px/1.25 Georgia,serif;color:var(--brass);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  header .book{display:none}          /* en celular manda el capítulo */
-  header .chap{font-size:16px;color:var(--ink)}
   .chap{
-    font-size:15px;color:var(--dim);margin-top:3px;
+    font:400 15px/1.3 Georgia,serif;color:var(--ink);margin-top:1px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   button{
-    font:600 13px/1 ui-sans-serif,system-ui,sans-serif;
+    font:600 13px/1 var(--ui);
     color:var(--ink);background:transparent;
     border:1px solid var(--rule);border-radius:9px;
     padding:9px 11px;cursor:pointer;
   }
   button:active{background:var(--panel)}
   button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
-  .icon{min-width:38px;padding:9px 7px;text-align:center}
+  /* los controles de la cabecera no llevan caja: el borde aparece solo al activarse */
+  .icon{
+    min-width:40px;min-height:40px;padding:8px;
+    border:1px solid transparent;border-radius:10px;
+    color:var(--dim);text-align:center;font-size:15px;
+    transition:color .15s ease,background .15s ease;
+  }
+  .icon:active{background:var(--panel);color:var(--ink)}
+  @media (hover:hover){ .icon:hover{color:var(--ink)} }
   .icon svg{display:block;margin:0 auto}
+  .grp-nav{display:flex;gap:2px;margin-right:2px}
+  .grp-tools{display:flex;gap:2px;align-items:center}
+  .grp-tools::before{
+    content:"";width:1px;height:20px;background:var(--rule);margin:0 6px 0 2px;
+  }
 
   /* ---- reading stage ---- */
   #stage{flex:1;position:relative;overflow:hidden;touch-action:none}
@@ -90,8 +108,8 @@
   }
   #flow .num{
     display:block;
-    font:700 11px/1 ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.2em;color:var(--brass);margin-bottom:.7em;
+    font:400 .62em/1 Georgia,serif;
+    letter-spacing:.04em;color:var(--brass);margin-bottom:.55em;
   }
   #flow h2 + p{margin-top:.6em}
   #flow p{margin:0 0 1em;orphans:2;widows:2}
@@ -104,6 +122,9 @@
     color:var(--ink);font-weight:700;
     border-bottom:2px dotted var(--brass);
     cursor:pointer;
+    /* si un término de dos palabras cae en el salto de línea, el subrayado
+       se dibuja completo en los dos trozos en vez de quedar cortado */
+    -webkit-box-decoration-break:clone;box-decoration-break:clone;
   }
   .w.on{background:var(--brass);color:var(--bg);border-bottom-color:transparent;border-radius:3px}
   strong{font-weight:700}
@@ -121,14 +142,12 @@
     border:1px solid var(--rule);color:var(--ink);
   }
   .who-btn:active{border-color:var(--brass)}
-  .chips{display:flex;gap:10px;align-items:center;margin:0 0 22px}
-  .chips .lbl{
-    font:600 11px/1 ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-right:2px;
-  }
+  /* quién lee: un par de fichas en la barra superior */
+  .chips{display:flex;gap:6px;align-items:center;flex:0 0 auto}
   .chip{
-    font:600 14px/1 ui-sans-serif,system-ui,sans-serif;
-    padding:10px 16px;border-radius:99px;color:var(--dim);
+    font:600 13px/1 var(--ui);
+    padding:8px 14px;border-radius:99px;color:var(--dim);
+    border-color:transparent;
   }
   .chip.on{background:var(--brass);border-color:var(--brass);color:var(--bg)}
   .mark{
@@ -150,37 +169,50 @@
   /* tablet / desktop */
   @media (min-width:760px){
     #app{max-width:1180px}
-    header{padding:20px 34px 14px;gap:14px}
-    header .book{display:block;font-size:12px}
-    header .chap{font-size:17px;color:var(--dim)}
+    header{padding:14px 28px;gap:4px}
+    header .book{font-size:14px}
+    header .chap{font-size:19px}
+    .titles{padding:0 18px}
     button{font-size:14px;padding:11px 14px;border-radius:10px}
-    .icon{min-width:48px}
+    .icon{min-width:46px;min-height:46px;font-size:16px}
+    .grp-tools::before{height:24px;margin:0 10px 0 4px}
     #viewport{padding:34px 40px 10px}
     footer{padding:14px 34px 22px}
-    .nav button{padding:13px 26px;font-size:16px}
-    .count{font-size:13px}
-    .home-in{padding:56px 40px 60px;max-width:1180px}
-    .lede{font-size:42px}
-    .sub{font-size:18px;max-width:60ch}
-    #shelf{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+    .nav button{padding:13px 24px;font-size:16px}
+    .count{font-size:14px}
+    .home-in{padding:34px 40px 60px;max-width:1180px}
+    .lede{font-size:30px}
+    #shelf{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
     #shelf .card{margin-bottom:0}
-    .card-in{padding:26px 26px 24px}
-    .spine{flex-basis:74px;min-height:132px}
-    .card h3{font-size:29px}
+    .card-in{padding:22px 22px 20px;gap:20px}
+    .cover{flex-basis:78px;min-height:116px}
+    .card h3{font-size:27px}
+    .topbar{padding:22px 40px 0}
     #gloss{
-      left:50%;right:auto;transform:translateX(-50%);
-      width:min(560px,80%);
+      left:0;right:0;width:min(620px,86%);
+      margin-left:auto;margin-right:auto;
+      max-height:40%;
     }
   }
 
   /* ---- glossary card ---- */
+  /* el significado aparece siempre abajo, en el mismo lugar: así nunca tapa
+     el encabezado ni se mueve de sitio según dónde caiga la palabra */
   #gloss{
-    position:absolute;z-index:6;left:16px;right:16px;
+    position:absolute;z-index:6;left:12px;right:12px;bottom:12px;
     background:var(--panel);border:1px solid var(--brass);
-    border-radius:12px;padding:14px 16px;
-    box-shadow:0 12px 34px rgba(0,0,0,.5);
+    border-radius:14px;padding:12px 16px 14px;
+    box-shadow:0 -6px 34px rgba(0,0,0,.55);
+    max-height:46%;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;
     display:none;
   }
+  #gloss::before{
+    content:"";display:block;width:34px;height:3px;border-radius:2px;
+    background:var(--rule);margin:0 auto 10px;
+  }
+  #gloss.in{animation:glossIn .18s cubic-bezier(.2,.8,.3,1) both}
+  @keyframes glossIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){#gloss.in{animation:none}}
   #gloss b{display:block;color:var(--brass);font-size:17px;margin-bottom:6px}
   #gloss span{display:block;font-size:16px;line-height:1.45}
   #gloss .en::before,#gloss .es::before{
@@ -200,11 +232,18 @@
   .bar{height:3px;background:var(--rule);border-radius:2px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:var(--brass);transition:width .26s ease}
   .nav{display:flex;align-items:center;gap:12px;margin-top:10px}
-  .nav button{flex:0 0 auto;padding:11px 16px;font-size:15px}
+  .nav button{
+    flex:0 0 auto;padding:11px 15px;font-size:15px;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .nav .chev{font-size:17px;line-height:1;color:var(--dim)}
+  #btnNext{color:var(--brass);border-color:color-mix(in srgb,var(--brass) 45%,var(--rule))}
+  #btnNext .chev{color:var(--brass)}
+  /* el capítulo ya vive en la cabecera: aquí va solo la página, en una línea */
   .count{
-    flex:1;text-align:center;
-    font:500 12px/1.4 ui-sans-serif,system-ui,sans-serif;
-    color:var(--dim);letter-spacing:.04em;
+    flex:1;text-align:center;white-space:nowrap;
+    font:500 13px/1 var(--ui);
+    color:var(--dim);font-variant-numeric:tabular-nums;
   }
 
   /* ---- contents panel ---- */
@@ -217,7 +256,9 @@
     position:absolute;inset:0;margin:0 auto;max-width:820px;
     background:var(--bg);display:flex;flex-direction:column;
   }
-  .sheet header{border-bottom:1px solid var(--rule)}
+  .sheet header{border-bottom:1px solid var(--rule);padding:12px 14px;gap:12px}
+  .sheet .titles{padding:0}
+  #btnClose{flex:0 0 auto}
   .sheet .list{
     flex:1;overflow-y:auto;padding:8px 12px 28px;
     -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
@@ -246,60 +287,81 @@
     overscroll-behavior:contain;touch-action:pan-y;
   }
   #home.open{display:block}
-  .home-in{max-width:820px;margin:0 auto;padding:34px 22px 46px}
-  .kicker{
-    font:700 11px/1 ui-sans-serif,system-ui,sans-serif;
-    letter-spacing:.24em;text-transform:uppercase;color:var(--brass);
+  /* barra superior: el nombre y quién lee, en una sola línea */
+  .topbar{
+    display:flex;align-items:center;gap:12px;
+    max-width:820px;margin:0 auto;padding:16px 22px 0;
   }
+  .wordmark{
+    flex:1;min-width:0;
+    font:400 16px/1 Georgia,serif;color:var(--brass);
+  }
+  .home-in{max-width:820px;margin:0 auto;padding:18px 22px 46px}
   .lede{
-    font-size:31px;line-height:1.2;margin:12px 0 6px;font-weight:400;
+    font-size:23px;line-height:1.25;margin:0 0 18px;font-weight:400;color:var(--ink);
   }
-  .sub{color:var(--dim);font-size:16px;line-height:1.5;margin:0 0 30px}
   .card{
     width:100%;text-align:left;display:block;
     background:var(--panel);border:1px solid var(--rule);border-radius:14px;
-    padding:0;margin-bottom:18px;overflow:hidden;cursor:pointer;
+    padding:0;margin-bottom:14px;overflow:hidden;cursor:pointer;
     font-family:Georgia,serif;
+    transition:transform .12s ease,border-color .15s ease;
   }
-  .card:active{border-color:var(--brass)}
+  .card:active{border-color:var(--cloth,var(--brass));transform:scale(.988)}
   .card:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
-  .card-in{display:flex;gap:18px;padding:20px 20px 18px}
-  .spine{
-    flex:0 0 62px;border-radius:5px;
-    background:linear-gradient(160deg,var(--brass),rgba(0,0,0,.45));
-    display:flex;align-items:flex-end;padding:10px;min-height:104px;
+  @media (prefers-reduced-motion:reduce){ .card{transition:border-color .15s ease} .card:active{transform:none} }
+  .card-in{display:flex;gap:16px;padding:16px 18px 15px}
+  /* la tapa: tela de color, un filete dorado y la inicial. El título va al lado. */
+  .cover{
+    flex:0 0 58px;min-height:92px;border-radius:3px 6px 6px 3px;
+    background:
+      linear-gradient(to right,rgba(0,0,0,.34) 0 5px,rgba(255,255,255,.07) 5px 7px,transparent 7px),
+      linear-gradient(165deg,var(--cloth) 0%,rgba(0,0,0,.5) 140%);
+    box-shadow:0 2px 10px rgba(0,0,0,.4);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
   }
-  .spine em{
-    font:700 10px/1.15 ui-sans-serif,system-ui,sans-serif;
-    font-style:normal;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--bg);
+  .cover em{
+    font:400 23px/1 Georgia,serif;font-style:normal;
+    color:rgba(255,255,255,.9);padding-left:5px;
+    text-shadow:0 1px 2px rgba(0,0,0,.45);
   }
-  .card h3{margin:0;font-size:25px;line-height:1.15;font-weight:400;color:var(--ink)}
-  .card .by{color:var(--dim);font-size:15px;margin:5px 0 12px}
+  .card h3{margin:0;font-size:23px;line-height:1.18;font-weight:400;color:var(--ink)}
+  .card .by{color:var(--dim);font-size:14px;margin:4px 0 0;font-weight:400}
+  .card .voice{color:var(--dim);font-size:14px;font-style:italic;margin:1px 0 0;opacity:.78}
   .meta{
-    font:600 12px/1.4 ui-sans-serif,system-ui,sans-serif;
-    color:var(--brass);letter-spacing:.03em;
+    font:600 12.5px/1.4 var(--ui);
+    color:var(--brass);margin-top:9px;
   }
+  .meta.fresh{color:var(--dim);font-weight:500}
   .cardbar{height:3px;background:var(--rule)}
-  .cardbar i{display:block;height:100%;background:var(--brass);width:0}
+  .cardbar i{display:block;height:100%;background:var(--cloth,var(--brass));width:0}
+  .hint{
+    font:400 14px/1.55 var(--ui);color:var(--dim);
+    margin:22px 0 0;padding-top:16px;border-top:1px solid var(--rule);
+  }
   .reset{
-    font:600 12px/1 ui-sans-serif,system-ui,sans-serif;color:var(--dim);
-    border:0;padding:10px 0;margin-top:6px;
+    font:500 12.5px/1 var(--ui);color:var(--dim);opacity:.75;
+    border:0;padding:12px 0;margin-top:0;
   }
 </style>
 
 <div id="app">
   <header>
-    <button class="icon" id="btnHome" aria-label="Library">⌂</button>
-    <button class="icon" id="btnToc" aria-label="Contents">☰</button>
+    <div class="grp-nav">
+      <button class="icon" id="btnHome" aria-label="Volver a la repisa">⌂</button>
+      <button class="icon" id="btnToc" aria-label="Índice del libro">☰</button>
+    </div>
     <div class="titles">
       <div class="book" id="hBook"></div>
       <div class="chap" id="hChap"></div>
     </div>
-    <button class="icon" id="btnSmall" aria-label="Smaller text">A−</button>
-    <button class="icon" id="btnBig" aria-label="Bigger text">A+</button>
-    <button class="icon" id="btnMark" aria-label="Bookmark">&#9873;</button>
-    <button class="icon" id="btnTheme" aria-label="Change colours"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.8a6.2 6.2 0 010 12.4z" fill="currentColor"/></svg></button>
+    <div class="grp-tools">
+      <button class="icon" id="btnSmall" aria-label="Letra más chica">A−</button>
+      <button class="icon" id="btnBig" aria-label="Letra más grande">A+</button>
+      <button class="icon" id="btnMark" aria-label="Marcador">&#9873;</button>
+      <button class="icon" id="btnTheme" aria-label="Cambiar colores"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.8a6.2 6.2 0 010 12.4z" fill="currentColor"/></svg></button>
+    </div>
   </header>
 
   <section id="stage">
@@ -310,19 +372,19 @@
   <footer>
     <div class="bar"><i id="prog"></i></div>
     <div class="nav">
-      <button id="btnPrev">← Back</button>
+      <button id="btnPrev"><span class="chev" aria-hidden="true">‹</span><span class="lab"></span></button>
       <div class="count" id="count"></div>
-      <button id="btnNext">Next →</button>
+      <button id="btnNext"><span class="lab"></span><span class="chev" aria-hidden="true">›</span></button>
     </div>
   </footer>
 </div>
 
 <div id="home">
+  <div class="topbar">
+    <div class="wordmark">Reading Lamp</div>
+    <div class="chips" id="chips"></div>
+  </div>
   <div class="home-in">
-    <div class="kicker">Reading Lamp</div>
-    <h1 class="lede">Seis libros, un capítulo a la vez</h1>
-    <p class="sub">Toca las palabras con puntitos para ver qué significan · Desliza o usa los botones para pasar de página.</p>
-
     <div id="who">
       <p class="who-q">¿Quién está leyendo?</p>
       <div class="who-row">
@@ -332,8 +394,9 @@
     </div>
 
     <div id="shelfWrap" hidden>
-      <div class="chips" id="chips"><span class="lbl">Lector</span></div>
+      <h1 class="lede" id="lede"></h1>
       <div id="shelf"></div>
+      <p class="hint">Las palabras con puntitos se tocan y te dicen qué significan, en inglés y en español. Para pasar de página, desliza con el dedo o usa los botones de abajo.</p>
       <button class="reset" id="btnReset">Borrar mi avance y empezar de nuevo</button>
     </div>
   </div>
@@ -345,10 +408,10 @@
   <div class="sheet">
     <header>
       <div class="titles">
-        <div class="book">Índice</div>
-        <div class="chap" id="tocSub">Chapters in this book</div>
+        <div class="book" id="tocBook"></div>
+        <div class="chap" id="tocSub"></div>
       </div>
-      <button id="btnClose">Close</button>
+      <button id="btnClose"></button>
     </header>
     <div class="list" id="tocList"></div>
   </div>
@@ -2905,10 +2968,10 @@ const THEMES = ["ink","amber"];
 const NAMES = { m:"Mauricio", g:"Gabriel" };
 const T = {
   en:{ chap:"Chapter", page:"Page", spread:"Spread", of:"of",
-       back:"\u2190 Back", next:"Next \u2192", toc:"Chapters in this book",
+       back:"Back", next:"Next", toc:"Chapters in this book", close:"Close",
        mark:"Bookmark saved", unmark:"Bookmark removed", mine:"My bookmark" },
   es:{ chap:"Cap\u00edtulo", page:"P\u00e1gina", spread:"Doble p\u00e1gina", of:"de",
-       back:"\u2190 Atr\u00e1s", next:"Seguir \u2192", toc:"Secciones de este libro",
+       back:"Atr\u00e1s", next:"Seguir", toc:"Secciones de este libro", close:"Cerrar",
        mark:"Marcador guardado", unmark:"Marcador quitado", mine:"Mi marcador" }
 };
 const t = () => T[(BOOKS[book]||{}).lang || "en"];
@@ -2946,8 +3009,8 @@ function render(goLast){
   $("#hChap").textContent = (chap+1)+". "+c.t;
   document.documentElement.style.setProperty("--size", size+"px");
   flow.innerHTML = '<h2><span class="num">'+t().chap+' '+(chap+1)+'</span>'+esc(c.t)+"</h2>"+markup(c.x)+'<hr class="rule">';
-  $("#btnPrev").textContent = t().back;
-  $("#btnNext").textContent = t().next;
+  $("#btnPrev").querySelector(".lab").textContent = t().back;
+  $("#btnNext").querySelector(".lab").textContent = t().next;
   flow.style.transition = "none";
   flow.style.transform = "translateX(0)";
   hideGloss();
@@ -2979,11 +3042,9 @@ function paint(){
   flow.style.transform = "translateX("+(-page*(m.w+m.gap))+"px)";
   const b = BOOKS[book];
   const L = t();
+  /* el capítulo lo dice la cabecera; aquí solo la página, para que nunca se corte */
   const unit = metrics().col < metrics().w ? L.spread : L.page;
-  const chapPart = L.chap+" "+(chap+1)+" "+L.of+" "+b.chapters.length;
-  $("#count").textContent = pages > 1
-    ? unit+" "+(page+1)+" "+L.of+" "+pages+"  ·  "+chapPart
-    : chapPart;
+  $("#count").textContent = pages > 1 ? unit+" "+(page+1)+" "+L.of+" "+pages : "";
   const done = (chap + (page+1)/pages) / b.chapters.length;
   $("#prog").style.width = (done*100).toFixed(1)+"%";
   if(live) me().pos[b.id] = { chap: chap, frac: done };
@@ -3014,11 +3075,9 @@ function showGloss(el){
   gloss.querySelector(".es").style.display = ES[k] ? "block" : "none";
   gloss.querySelector(".es").style.borderTopWidth = G[k] ? "1px" : "0";
   gloss.querySelector(".es").style.marginTop = G[k] ? "7px" : "0";
+  gloss.scrollTop = 0;
   gloss.style.display = "block";
-  const r = el.getBoundingClientRect(), s = $("#stage").getBoundingClientRect();
-  const below = r.bottom - s.top + 10;
-  const fits = below + gloss.offsetHeight < s.height - 8;
-  gloss.style.top = (fits ? below : Math.max(8, r.top - s.top - gloss.offsetHeight - 10))+"px";
+  gloss.classList.remove("in"); void gloss.offsetWidth; gloss.classList.add("in");
 }
 function hideGloss(){
   gloss.style.display="none";
@@ -3051,8 +3110,8 @@ function goMark(bi){
   $("#hChap").textContent = (chap+1)+". "+c.t;
   document.documentElement.style.setProperty("--size", size+"px");
   flow.innerHTML = '<h2><span class="num">'+t().chap+' '+(chap+1)+'</span>'+esc(c.t)+"</h2>"+markup(c.x)+'<hr class="rule">';
-  $("#btnPrev").textContent = t().back;
-  $("#btnNext").textContent = t().next;
+  $("#btnPrev").querySelector(".lab").textContent = t().back;
+  $("#btnNext").querySelector(".lab").textContent = t().next;
   flow.style.transition = "none"; flow.style.transform = "translateX(0)"; hideGloss();
   requestAnimationFrame(()=>{
     measure();
@@ -3070,7 +3129,7 @@ function toast(msg){
 /* contents */
 function buildToc(){
   const b = BOOKS[book];
-  let h = '<div class="grp">'+b.title+' · '+b.author+'</div>';
+  let h = "";
   const mk = me().marks[b.id];
   if(mk){
     h += '<button class="item bm" data-mark="'+book+'"><span class="n">&#9873;</span>'
@@ -3081,32 +3140,46 @@ function buildToc(){
     h += '<button class="item'+cur+'" data-b="'+book+'" data-c="'+ci+'"><span class="n">'+(ci+1)+'</span>'+c.t+'</button>';
   });
   $("#tocList").innerHTML = h;
+  /* el panel habla el idioma del libro, igual que la cabecera de lectura */
+  $("#tocBook").textContent = b.title;
   $("#tocSub").textContent = t().toc;
+  $("#btnClose").textContent = t().close;
 }
 
 /* library home */
 function buildChips(){
-  $("#chips").innerHTML = '<span class="lbl">Lector</span>' + Object.keys(NAMES).map(u=>
+  $("#chips").innerHTML = Object.keys(NAMES).map(u=>
     '<button class="chip'+(u===user?" on":"")+'" data-u="'+u+'">'+NAMES[u]+'</button>').join("");
 }
+/* la letra de la tapa: la inicial del título, sin el artículo inicial en inglés */
+function inicial(t){
+  return t.replace(/^(the|a|an)\s+/i, "").charAt(0).toUpperCase();
+}
 function buildShelf(){
+  const empezados = BOOKS.filter(b=>((me().pos[b.id]||{}).frac||0) > 0.001).length;
+  $("#lede").textContent = empezados
+    ? "Vas por "+empezados+" de "+BOOKS.length+" libros."
+    : "Seis libros, un capítulo a la vez.";
+
   $("#shelf").innerHTML = BOOKS.map((b,i)=>{
     const p = me().pos[b.id] || {chap:0,frac:0};
     const mk = me().marks[b.id];
     const started = p.frac > 0.001;
-    const L = T[b.lang || "en"];
+    const es = b.lang === "es";
+    /* el texto de cada libro va en su propio idioma: así el lector no se sale del inglés */
     const label = started
-      ? (b.lang==="es" ? "Seguir · Capítulo "+(p.chap+1)+" de "+b.chapters.length
-                       : "Continue · Chapter "+(p.chap+1)+" of "+b.chapters.length)
-      : (b.lang==="es" ? "Empezar · "+b.chapters.length+" secciones"
-                       : "Start reading · "+b.chapters.length+" chapters");
-    return '<button class="card" data-b="'+i+'">'
+      ? (es ? "Seguir en el capítulo "+(p.chap+1)+" de "+b.chapters.length
+            : "Continue at chapter "+(p.chap+1)+" of "+b.chapters.length)
+      : (es ? "Empezar · "+b.chapters.length+" secciones"
+            : "Start reading · "+b.chapters.length+" chapters");
+    return '<button class="card" data-b="'+i+'" data-tint="'+b.id+'">'
       + '<div class="card-in">'
-      +   '<div class="spine"><em>'+esc(b.title)+'</em></div>'
+      +   '<div class="cover" aria-hidden="true"><em>'+esc(inicial(b.title))+'</em></div>'
       +   '<div><h3>'+esc(b.title)+'</h3>'
-      +     '<div class="by">'+esc(b.author)+' · '+esc(b.voice)+'</div>'
-      +     '<div class="meta">'+label+'</div>'
-      +     (mk ? '<div class="mark"><b>&#9873;</b> '+(b.lang==="es"?"Marcador en el capítulo ":"Bookmark in chapter ")+(mk.chap+1)+'</div>' : '')
+      +     '<div class="by">'+esc(b.author)+'</div>'
+      +     '<div class="voice">'+esc(b.voice)+'</div>'
+      +     '<div class="meta'+(started?"":" fresh")+'">'+label+'</div>'
+      +     (mk ? '<div class="mark"><b>&#9873;</b> '+(es?"Marcador en el capítulo ":"Bookmark in chapter ")+(mk.chap+1)+'</div>' : '')
       +   '</div>'
       + '</div>'
       + '<div class="cardbar"><i style="width:'+(p.frac*100).toFixed(1)+'%"></i></div>'
@@ -3235,14 +3308,22 @@ document.addEventListener("dblclick", e=>{ e.preventDefault(); }, {passive:false
 document.addEventListener("gesturestart", e=>{ e.preventDefault(); }, {passive:false});
 document.addEventListener("gesturechange", e=>{ e.preventDefault(); }, {passive:false});
 
-$("#stage").addEventListener("touchmove", e=>{ e.preventDefault(); }, {passive:false});
+/* el escenario no se mueve con el dedo, pero el panel del glosario sí se
+   puede scrollear cuando la definición es larga */
+$("#stage").addEventListener("touchmove", e=>{
+  if(!e.target.closest("#gloss")) e.preventDefault();
+}, {passive:false});
 document.addEventListener("touchmove", e=>{
-  if(!e.target.closest("#home, .list")) e.preventDefault();
+  if(!e.target.closest("#home, .list, #gloss")) e.preventDefault();
 }, {passive:false});
 
-let sx=0, sy=0;
-$("#stage").addEventListener("touchstart", e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; }, {passive:true});
+let sx=0, sy=0, swipeOk=true;
+$("#stage").addEventListener("touchstart", e=>{
+  sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+  swipeOk = !e.target.closest("#gloss");   /* arrastrar dentro del panel no pasa de página */
+}, {passive:true});
 $("#stage").addEventListener("touchend", e=>{
+  if(!swipeOk) return;
   const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
   if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){ dx < 0 ? next() : prev(); }
 }, {passive:true});
