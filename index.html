@@ -181,8 +181,6 @@
     .home-in{padding:34px 40px 60px;max-width:1180px}
     .lede{font-size:30px}
     #shelf{gap:28px 22px;grid-template-columns:repeat(3,1fr)}
-    .card h3{font-size:17px}
-    .card .by{font-size:10.5px}
     .card .voice{display:block;color:var(--dim);font:italic 400 13px/1.35 var(--ui);margin:2px 0 0;opacity:.8}
     .topbar{padding:22px 40px 0}
     #gloss{
@@ -314,20 +312,30 @@
         transparent 4.5% 7%,rgba(255,255,255,.07) 7% 8%,transparent 8%),
       linear-gradient(to bottom,rgba(255,255,255,.08),transparent 12%);
   }
-  /* titulo y autor impresos en la tapa, sobre un degradado que oscurece la base */
+  /* titulo y autor impresos en la tapa, como un libro real: el titulo
+     arriba y grande, el autor al pie. El tamano escala con el ancho de la
+     tapa (cqw) y con el largo del titulo. */
+  .cover{container-type:inline-size}
   .cover .ttl{
-    position:absolute;left:0;right:0;bottom:0;padding:26px 9% 9%;
-    background:linear-gradient(to top,rgba(8,6,10,.84) 0%,rgba(8,6,10,.55) 55%,rgba(8,6,10,0) 100%);
+    position:absolute;left:0;right:0;top:0;padding:11% 9% 22% 11%;
+    background:linear-gradient(to bottom,rgba(6,5,9,.62) 0%,rgba(6,5,9,.32) 60%,rgba(6,5,9,0) 100%);
     text-align:center;
   }
-  .cover .ttl::before{content:"";display:block;width:22px;height:1px;background:rgba(244,236,216,.45);margin:0 auto 8px}
   .card h3{
-    margin:0;font-size:14.5px;line-height:1.15;font-weight:700;letter-spacing:-.01em;
-    color:#F4ECD8;text-shadow:0 1px 2px rgba(0,0,0,.6);text-wrap:balance;
+    margin:0;font-weight:800;line-height:.98;letter-spacing:-.02em;
+    color:#F7EFDC;text-wrap:balance;
+    text-shadow:0 1px 1px rgba(0,0,0,.55),0 2px 14px rgba(0,0,0,.45);
   }
-  .card .by{
-    margin:5px 0 0;font:500 9.5px/1.2 var(--ui);letter-spacing:.14em;text-transform:uppercase;
-    color:rgba(244,236,216,.72);
+  .card h3.t-xl{font-size:17px;font-size:17cqw;text-transform:uppercase;letter-spacing:.02em}
+  .card h3.t-l {font-size:14px;font-size:13.2cqw}
+  .card h3.t-m {font-size:12px;font-size:11.4cqw}
+  .card h3::after{content:"";display:block;width:18%;height:1.5px;margin:8% auto 0;background:rgba(247,239,220,.55)}
+  .cover .au{
+    position:absolute;left:0;right:0;bottom:0;padding:18% 8% 8% 10%;
+    background:linear-gradient(to top,rgba(6,5,9,.7) 0%,rgba(6,5,9,0) 100%);
+    text-align:center;font:600 8.5px/1.25 var(--ui);font-size:5.6cqw;
+    letter-spacing:.16em;text-transform:uppercase;color:rgba(247,239,220,.82);
+    text-shadow:0 1px 2px rgba(0,0,0,.6);
   }
   .card .voice{display:none}
   .meta{font:600 11.5px/1.35 var(--ui);color:var(--brass);margin-top:6px}
@@ -383,7 +391,7 @@
     <div id="shelfWrap">
       <h1 class="lede" id="lede"></h1>
       <div id="shelf"></div>
-      <p class="hint">Las palabras con puntitos se tocan y te dicen qué significan, en inglés y en español. Para pasar de página, desliza con el dedo o usa los botones de abajo.</p>
+      <p class="hint">Las palabras con puntitos se tocan y te dicen qué significan, en inglés y en español. Para pasar de página, desliza con el dedo hacia un lado.</p>
       <button class="reset" id="btnReset">Borrar mi avance y empezar de nuevo</button>
     </div>
   </div>
@@ -611,12 +619,12 @@ sl: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
   <filter id="sl-grain" x="0" y="0" width="100%" height="100%">
     <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/>
     <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .08 0"/></filter>
-  <mask id="sl-cres"><rect width="120" height="180" fill="#fff"/><circle cx="96.8" cy="27.2" r="8.2" fill="#000"/></mask>
+  <mask id="sl-cres"><rect width="120" height="180" fill="#fff"/><circle cx="99.6" cy="70.4" r="6.6" fill="#000"/></mask>
 </defs>
 <rect width="120" height="180" fill="url(#sl-sky)"/>
 <ellipse cx="40" cy="40" rx="70" ry="22" fill="url(#sl-milky)" transform="rotate(-28 40 40)" filter="url(#sl-soft3)"/>
 <g fill="#FFF8F0"><circle cx="20" cy="18" r=".8"/><circle cx="44" cy="10" r=".55"/><circle cx="72" cy="22" r=".65"/><circle cx="98" cy="12" r=".7"/><circle cx="108" cy="34" r=".5"/><circle cx="60" cy="38" r=".45"/><circle cx="30" cy="42" r=".5"/><circle cx="8" cy="30" r=".45"/><circle cx="52" cy="24" r=".4"/><circle cx="84" cy="44" r=".4"/><circle cx="14" cy="56" r=".4"/><circle cx="36" cy="28" r=".35"/><circle cx="66" cy="8" r=".4"/><circle cx="116" cy="50" r=".4"/><circle cx="90" cy="54" r=".35"/><circle cx="26" cy="6" r=".35"/><circle cx="48" cy="52" r=".3"/><circle cx="76" cy="60" r=".35"/></g>
-<circle cx="92" cy="30" r="9" fill="#FFF6E6" opacity=".95" mask="url(#sl-cres)"/>
+<circle cx="96" cy="72.4" r="7.2" fill="#FFF6E6" opacity=".95" mask="url(#sl-cres)"/>
 <!-- cordillera 1: lejana -->
 <path fill="url(#sl-r1)" opacity=".85" d="M0 112 L10 102 L20 108 L32 90 L44 104 L56 96 L66 106 L78 94 L90 104 L104 92 L114 100 L120 96 L120 180 L0 180 Z"/>
 <path fill="url(#sl-snow)" opacity=".85" d="M32 90 L36.5 97 L34 96 L32 98 L30 96 L27.5 97.5 Z M78 94 L82 100.5 L79.5 99.5 L78 101.5 L76 99.5 L74 100.5 Z M104 92 L107 97 L105 96 L104 98 L102 96 L101 97 Z"/>
@@ -651,13 +659,13 @@ sl: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
   <path fill="#E8574A" d="M102 141.1 l0 4.4 4.2-.3 0-4.4z"/><path fill="#F2C94C" d="M111 141.4 l0 4.4 4.2-.3 0-4.4z"/>
 </g>
 <!-- el leopardo de las nieves, sentado en la roca -->
-<g>
-  <path fill="none" stroke="#E9E3E0" stroke-width="3.2" stroke-linecap="round" d="M74 162 C66 160 61 165 64 170 C66 173.5 71 172 71 168.5"/>
+<g transform="translate(0 -7)">
+  <path fill="none" stroke="#E9E3E0" stroke-width="3.2" stroke-linecap="round" d="M74 162 C68 162 63.5 159 62.5 154.5 C62 151.5 64.6 150.4 66.2 152.4"/>
   <ellipse cx="85" cy="161.5" rx="11.5" ry="5.6" fill="#E9E3E0"/>
   <path fill="#E9E3E0" d="M92 158 C92 153.5 95 151 98.5 151 C102 151 104.8 153.6 104.6 157 C104.4 160.4 101.6 162.4 98 162 L93.5 161 Z"/>
   <path fill="#E9E3E0" d="M94.5 152.6 L94 148.4 L97.4 151.2 Z M100.6 151 L102.6 147.6 L103.2 151.6 Z"/>
   <ellipse cx="90" cy="166.5" rx="3.2" ry="1.5" fill="#E9E3E0"/><ellipse cx="96" cy="166.5" rx="3.2" ry="1.5" fill="#E9E3E0"/>
-  <g fill="#4E4850" opacity=".85"><circle cx="78" cy="160" r=".9"/><circle cx="82" cy="158.5" r=".8"/><circle cx="86" cy="160" r=".9"/><circle cx="90" cy="159" r=".7"/><circle cx="80" cy="163" r=".7"/><circle cx="85" cy="163.5" r=".7"/><circle cx="89" cy="162.5" r=".6"/><circle cx="67" cy="166" r=".55"/><circle cx="70" cy="169.5" r=".5"/><circle cx="64.5" cy="169" r=".5"/></g>
+  <g fill="#4E4850" opacity=".85"><circle cx="78" cy="160" r=".9"/><circle cx="82" cy="158.5" r=".8"/><circle cx="86" cy="160" r=".9"/><circle cx="90" cy="159" r=".7"/><circle cx="80" cy="163" r=".7"/><circle cx="85" cy="163.5" r=".7"/><circle cx="89" cy="162.5" r=".6"/><circle cx="66" cy="160" r=".55"/><circle cx="63.4" cy="156" r=".5"/><circle cx="69.5" cy="161.6" r=".5"/></g>
   <circle cx="99.6" cy="156" r=".7" fill="#1F2A3A"/><circle cx="102.4" cy="156.4" r=".6" fill="#1F2A3A"/>
   <circle cx="99.8" cy="155.8" r=".25" fill="#FFF"/>
   <path d="M103.6 158.6 l1.2 .4" stroke="#8A8390" stroke-width=".5" stroke-linecap="round"/>
@@ -3779,7 +3787,8 @@ function buildShelf(){
             : b.chapters.length+" chapters");
     return '<button class="card" data-b="'+i+'" data-tint="'+b.id+'">'
       +   '<div class="cover">'+(COVERS[b.id]||'')
-      +     '<div class="ttl"><h3>'+esc(b.title)+'</h3><div class="by">'+esc(b.author)+'</div></div>'
+      +     '<div class="ttl"><h3 class="'+(b.title.length<=10?'t-xl':b.title.length<=24?'t-l':'t-m')+'">'+esc(b.title)+'</h3></div>'
+      +     '<div class="au">'+esc(b.author)+'</div>'
       +   '</div>'
       +     '<div class="voice">'+esc(b.voice)+'</div>'
       +     '<div class="meta'+(started?"":" fresh")+'">'+label+'</div>'
