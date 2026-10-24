@@ -198,11 +198,10 @@
     .count{font-size:14px}
     .home-in{padding:34px 40px 60px;max-width:1180px}
     .lede{font-size:30px}
-    #shelf{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
-    #shelf .card{margin-bottom:0}
-    .card-in{padding:22px 22px 20px;gap:20px}
-    .cover{flex-basis:78px;min-height:116px}
-    .card h3{font-size:27px}
+    #shelf{gap:30px 22px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+    .card h3{font-size:17px}
+    .card .by{font-size:13.5px}
+    .card .voice{display:block;color:var(--dim);font:italic 400 13px/1.35 var(--ui);margin:2px 0 0;opacity:.8}
     .topbar{padding:22px 40px 0}
     #gloss{
       left:0;right:0;width:min(620px,86%);
@@ -316,41 +315,37 @@
   .lede{
     font-size:23px;line-height:1.28;margin:0 0 18px;font-weight:500;letter-spacing:-.01em;color:var(--ink);
   }
+  /* la repisa es una grilla de tapas grandes: la ilustracion es lo que se ve */
+  #shelf{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 14px}
   .card{
-    width:100%;text-align:left;display:block;
-    background:var(--panel);border:1px solid var(--rule);border-radius:14px;
-    padding:0;margin-bottom:14px;overflow:hidden;cursor:pointer;
-    font-family:var(--ui);
-    transition:transform .12s ease,border-color .15s ease;
+    text-align:left;display:block;padding:0;border:0;border-radius:0;
+    background:transparent;cursor:pointer;font-family:var(--ui);
+    transition:transform .14s ease;
   }
-  .card:active{border-color:var(--cloth,var(--brass));transform:scale(.988)}
-  .card:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
-  @media (prefers-reduced-motion:reduce){ .card{transition:border-color .15s ease} .card:active{transform:none} }
-  .card-in{display:flex;gap:16px;padding:16px 18px 15px}
-  /* la tapa: tela de color, un filete dorado y la inicial. El título va al lado. */
+  .card:active{transform:scale(.975)}
+  .card:focus-visible{outline:2px solid var(--brass);outline-offset:4px;border-radius:6px}
+  @media (prefers-reduced-motion:reduce){ .card{transition:none} .card:active{transform:none} }
   .cover{
-    flex:0 0 58px;min-height:92px;border-radius:3px 6px 6px 3px;
+    position:relative;width:100%;aspect-ratio:2/3;
+    border-radius:3px 7px 7px 3px;overflow:hidden;
+    background:var(--cloth,#333);
+    box-shadow:0 10px 24px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.06) inset;
+  }
+  .cover svg{display:block;width:100%;height:100%}
+  /* lomo y canto: la ilusion de un libro de tapa dura */
+  .cover::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
     background:
-      linear-gradient(to right,rgba(0,0,0,.34) 0 5px,rgba(255,255,255,.07) 5px 7px,transparent 7px),
-      linear-gradient(165deg,var(--cloth) 0%,rgba(0,0,0,.5) 140%);
-    box-shadow:0 2px 10px rgba(0,0,0,.4);
-    display:flex;align-items:center;justify-content:center;
-    position:relative;
+      linear-gradient(to right,rgba(0,0,0,.42) 0 3%,rgba(255,255,255,.14) 3% 4.5%,
+        transparent 4.5% 7%,rgba(255,255,255,.07) 7% 8%,transparent 8%),
+      linear-gradient(to bottom,rgba(255,255,255,.08),transparent 12%);
   }
-  .cover em{
-    font:600 23px/1 var(--ui);font-style:normal;
-    color:rgba(255,255,255,.9);padding-left:5px;
-    text-shadow:0 1px 2px rgba(0,0,0,.45);
-  }
-  .card h3{margin:0;font-size:22px;line-height:1.2;font-weight:500;letter-spacing:-.01em;color:var(--ink)}
-  .card .by{color:var(--dim);font:400 14px/1.35 var(--ui);margin:5px 0 0}
-  .card .voice{color:var(--dim);font:italic 400 14px/1.35 var(--ui);margin:2px 0 0;opacity:.8}
-  .meta{
-    font:600 12.5px/1.4 var(--ui);
-    color:var(--brass);margin-top:9px;
-  }
+  .card h3{margin:11px 0 0;font-size:15.5px;line-height:1.22;font-weight:600;letter-spacing:-.005em;color:var(--ink)}
+  .card .by{color:var(--dim);font:400 12.5px/1.3 var(--ui);margin:3px 0 0}
+  .card .voice{display:none}
+  .meta{font:600 11.5px/1.35 var(--ui);color:var(--brass);margin-top:6px}
   .meta.fresh{color:var(--dim);font-weight:500}
-  .cardbar{height:3px;background:var(--rule)}
+  .cardbar{height:3px;background:var(--rule);margin-top:8px;border-radius:2px;overflow:hidden}
   .cardbar i{display:block;height:100%;background:var(--cloth,var(--brass));width:0}
   .hint{
     font:400 14px/1.55 var(--ui);color:var(--dim);
@@ -519,6 +514,351 @@ const ES = {
 };
 
 /* ============ BOOKS ============ */
+/* Carátulas ilustradas, una escena por libro. viewBox 120x180 (2:3).
+   Cada SVG lleva sus <defs> con ids prefijados por libro para convivir
+   en la misma página. Técnica común: cielo en degradado, planos de
+   profundidad con contraste decreciente, bruma difuminada, grano sutil
+   y viñeta. Nada de esto reproduce portadas comerciales. */
+const COVERS = {
+
+/* ===== Dracula: luna sobre el castillo, bruma en el barranco ===== */
+dr: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="dr-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0B0A14"/><stop offset=".55" stop-color="#2A1424"/>
+    <stop offset="1" stop-color="#5A1F27"/></linearGradient>
+  <radialGradient id="dr-glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#FFF2D6" stop-opacity=".95"/>
+    <stop offset=".45" stop-color="#F3D9A8" stop-opacity=".35"/>
+    <stop offset="1" stop-color="#F3D9A8" stop-opacity="0"/></radialGradient>
+  <radialGradient id="dr-moon" cx="38%" cy="36%" r="70%">
+    <stop offset="0" stop-color="#FFF8E8"/><stop offset=".7" stop-color="#EAD9B4"/>
+    <stop offset="1" stop-color="#C9B48E"/></radialGradient>
+  <linearGradient id="dr-mist" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#C9A3A6" stop-opacity="0"/>
+    <stop offset="1" stop-color="#C9A3A6" stop-opacity=".55"/></linearGradient>
+  <radialGradient id="dr-vig" cx="50%" cy="45%" r="75%">
+    <stop offset=".55" stop-color="#000" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity=".55"/></radialGradient>
+  <filter id="dr-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <filter id="dr-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .09 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#dr-sky)"/>
+<circle cx="40" cy="48" r="40" fill="url(#dr-glow)"/>
+<circle cx="40" cy="48" r="17" fill="url(#dr-moon)"/>
+<g fill="#E6D3AE" opacity=".35"><circle cx="34" cy="42" r="2.2"/><circle cx="46" cy="52" r="1.6"/><circle cx="43" cy="39" r="1.1"/></g>
+<!-- estrellas -->
+<g fill="#FFF4DC" opacity=".7"><circle cx="86" cy="22" r=".7"/><circle cx="102" cy="40" r=".55"/><circle cx="70" cy="14" r=".5"/><circle cx="110" cy="18" r=".6"/><circle cx="12" cy="20" r=".5"/><circle cx="95" cy="60" r=".5"/></g>
+<!-- murcielago contra la luna -->
+<path fill="#0A0609" d="M40 44.5 c-.9 0-1.7.6-2 1.4-1.6-1.8-4.2-3-7.2-3.3 1.4 1.6 2 3.2 1.8 4.8-1.3-.5-2.7-.4-4 .1 2.6 1.3 4.3 3.2 5.2 5.4l1.4-2.3 1.7 1.5 1-2.1 1.5 1.1 .6-2.1.6 2.1 1.5-1.1 1 2.1 1.7-1.5 1.4 2.3c.9-2.2 2.6-4.1 5.2-5.4-1.3-.5-2.7-.6-4-.1-.2-1.6.4-3.2 1.8-4.8-3 .3-5.6 1.5-7.2 3.3-.3-.8-1.1-1.4-2-1.4z"/>
+<!-- montes lejanos -->
+<path fill="#1A0F18" opacity=".85" d="M0 112 L18 96 L34 108 L50 92 L68 104 L84 90 L100 100 L120 88 L120 180 L0 180 Z"/>
+<!-- el risco y el castillo -->
+<path fill="#070508" d="M0 180 L0 128 L10 124 L18 110 L26 106 L30 96 L34 96 L34 86 L37 86 L37 92 L41 92 L41 84 L44 84 L44 92 L48 92 L48 86 L51 86 L51 96 L56 96 L56 100 L62 100 L62 92 L65 92 L65 98 L70 98 L70 106 L78 110 L86 122 L96 128 L108 140 L120 144 L120 180 Z"/>
+<!-- torre principal -->
+<path fill="#070508" d="M41 84 L41 70 L43 70 L43 66 L45 66 L45 70 L47 70 L47 84 Z"/>
+<path fill="#070508" d="M60 92 L60 80 L62 80 L62 77 L64 77 L64 80 L66 80 L66 92 Z"/>
+<!-- ventanas encendidas -->
+<g fill="#F3B84A"><rect x="43.4" y="74" width="1.2" height="2.2" opacity=".9"/><rect x="58.2" y="96" width="1.1" height="1.8" opacity=".75"/><rect x="62.6" y="84" width="1" height="1.8" opacity=".8"/></g>
+<!-- bruma en el barranco -->
+<g filter="url(#dr-soft)">
+  <ellipse cx="30" cy="150" rx="46" ry="9" fill="#C9A3A6" opacity=".22"/>
+  <ellipse cx="86" cy="160" rx="50" ry="10" fill="#C9A3A6" opacity=".18"/>
+</g>
+<rect x="0" y="120" width="120" height="60" fill="url(#dr-mist)" opacity=".35"/>
+<rect width="120" height="180" fill="url(#dr-vig)"/>
+<rect width="120" height="180" filter="url(#dr-grain)" opacity=".5"/>
+</svg>`,
+
+/* ===== Snow Leopard: cordillera al atardecer, alpenglow ===== */
+sl: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="sl-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#121A33"/><stop offset=".45" stop-color="#3C4C7A"/>
+    <stop offset=".72" stop-color="#B57C8A"/><stop offset=".9" stop-color="#F0B48A"/></linearGradient>
+  <linearGradient id="sl-far" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8C7F9E"/><stop offset="1" stop-color="#6B617F"/></linearGradient>
+  <linearGradient id="sl-mid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E4A66"/><stop offset="1" stop-color="#2F2D44"/></linearGradient>
+  <linearGradient id="sl-near" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#232236"/><stop offset="1" stop-color="#101020"/></linearGradient>
+  <linearGradient id="sl-snow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE3D2"/><stop offset="1" stop-color="#F7F2EE"/></linearGradient>
+  <radialGradient id="sl-vig" cx="50%" cy="50%" r="75%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>
+  <filter id="sl-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6"/></filter>
+  <filter id="sl-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .08 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#sl-sky)"/>
+<g fill="#FFF8F0"><circle cx="20" cy="18" r=".7"/><circle cx="44" cy="10" r=".5"/><circle cx="72" cy="22" r=".6"/><circle cx="98" cy="12" r=".7"/><circle cx="108" cy="34" r=".5"/><circle cx="60" cy="38" r=".45"/><circle cx="30" cy="42" r=".5"/></g>
+<!-- luna creciente -->
+<mask id="sl-cres"><rect width="120" height="180" fill="#fff"/><circle cx="96.5" cy="27.5" r="8" fill="#000"/></mask>
+<circle cx="92" cy="30" r="9" fill="#FFF6E6" opacity=".95" mask="url(#sl-cres)"/>
+<!-- cordillera lejana -->
+<path fill="url(#sl-far)" opacity=".85" d="M0 118 L14 104 L26 112 L40 92 L54 108 L68 96 L82 110 L96 98 L110 112 L120 104 L120 180 L0 180 Z"/>
+<path fill="url(#sl-snow)" opacity=".85" d="M40 92 L45 100 L42 99 L40 101 L37 99 L35 100 Z M68 96 L72 103 L69.5 102 L68 104 L66 102 L64 103 Z"/>
+<!-- cordillera media con la cumbre principal -->
+<path fill="url(#sl-mid)" d="M0 140 L18 126 L34 134 L52 104 L70 128 L88 118 L104 136 L120 128 L120 180 L0 180 Z"/>
+<path fill="url(#sl-snow)" d="M52 104 L60 117 L57 115.5 L54.5 118 L52 115.5 L49.5 118 L47 116 L44 117.5 Z"/>
+<path fill="#D9A6A6" opacity=".55" d="M52 104 L60 117 L57 115.5 L54.5 118 L52 115.5 Z"/>
+<!-- bruma del valle -->
+<g filter="url(#sl-soft)"><ellipse cx="60" cy="146" rx="62" ry="7" fill="#D9C4D0" opacity=".3"/></g>
+<!-- primer plano -->
+<path fill="url(#sl-near)" d="M0 180 L0 156 L16 146 L30 152 L46 140 L62 150 L80 138 L96 148 L112 142 L120 148 L120 180 Z"/>
+<!-- banderas de oracion -->
+<path d="M8 150 C30 142 60 140 86 139" fill="none" stroke="#2A2538" stroke-width=".6" opacity=".9"/>
+<g opacity=".92">
+  <path fill="#E8574A" d="M16 147.2 l0 4.2 4-0.3 0-4.2z"/><path fill="#F2C94C" d="M26 145.4 l0 4.2 4-0.3 0-4.2z"/>
+  <path fill="#3F8FD6" d="M36 144 l0 4.2 4-0.3 0-4.2z"/><path fill="#FFFFFF" d="M46 143 l0 4.2 4-0.3 0-4.2z"/>
+  <path fill="#4CAF6E" d="M56 142.3 l0 4.2 4-0.3 0-4.2z"/><path fill="#E8574A" d="M66 141.8 l0 4.2 4-0.3 0-4.2z"/>
+  <path fill="#F2C94C" d="M76 141.4 l0 4.2 4-0.3 0-4.2z"/>
+</g>
+<rect width="120" height="180" fill="url(#sl-vig)"/>
+<rect width="120" height="180" filter="url(#sl-grain)" opacity=".5"/>
+</svg>`,
+
+/* ===== Anaconda: selva en capas, haz de luz, la víbora en la rama ===== */
+aq: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="aq-bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#1B3A2A"/><stop offset=".5" stop-color="#0E2A1E"/><stop offset="1" stop-color="#061710"/></linearGradient>
+  <linearGradient id="aq-ray" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#E9F5C8" stop-opacity=".5"/><stop offset="1" stop-color="#E9F5C8" stop-opacity="0"/></linearGradient>
+  <linearGradient id="aq-leafA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4F9B5C"/><stop offset="1" stop-color="#1F5C34"/></linearGradient>
+  <linearGradient id="aq-leafB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E7A43"/><stop offset="1" stop-color="#143F24"/></linearGradient>
+  <linearGradient id="aq-snake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9B46A"/><stop offset=".5" stop-color="#8F8A3E"/><stop offset="1" stop-color="#4E4F22"/></linearGradient>
+  <radialGradient id="aq-vig" cx="50%" cy="50%" r="75%"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
+  <filter id="aq-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+  <filter id="aq-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .08 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#aq-bg)"/>
+<!-- haz de luz -->
+<polygon points="70,0 120,0 120,120 30,180 0,180" fill="url(#aq-ray)" filter="url(#aq-soft)"/>
+<!-- hojas de fondo -->
+<g fill="#143F24" opacity=".8">
+  <path d="M-10 40 C10 20 40 22 52 46 C34 56 10 58 -10 40 Z"/>
+  <path d="M130 70 C110 50 80 54 70 80 C90 90 114 90 130 70 Z"/>
+  <path d="M100 0 C84 12 80 32 94 48 C108 36 112 14 100 0 Z"/>
+</g>
+<!-- hojas medias -->
+<g fill="url(#aq-leafB)">
+  <path d="M-8 96 C14 76 44 84 50 112 C28 122 2 118 -8 96 Z"/>
+  <path d="M128 118 C106 100 78 110 74 140 C96 146 120 140 128 118 Z"/>
+  <path d="M8 2 C28 14 36 40 22 62 C6 50 -2 24 8 2 Z"/>
+</g>
+<g stroke="#0B2416" stroke-width=".7" fill="none" opacity=".6">
+  <path d="M-4 96 C14 90 30 92 46 108"/><path d="M124 118 C104 112 88 116 78 136"/>
+</g>
+<!-- rama -->
+<path fill="#3B2A1B" d="M0 128 C30 120 60 126 90 118 C104 114 114 112 120 110 L120 118 C100 122 84 128 60 134 C40 138 20 136 0 138 Z"/>
+<path fill="#5A3F28" opacity=".6" d="M0 129 C30 122 60 128 90 120 L90 123 C60 130 30 126 0 132 Z"/>
+<!-- la víbora enroscada en la rama -->
+<g>
+  <path fill="none" stroke="url(#aq-snake)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"
+    d="M78 120 C78 108 70 100 58 100 C44 100 36 110 36 122 C36 134 46 142 58 142 C68 142 76 136 76 128 C76 120 70 115 62 115 C56 115 52 119 52 124"/>
+  <g fill="#3B3A17" opacity=".6">
+    <ellipse cx="70" cy="103" rx="2.4" ry="1.6" transform="rotate(30 70 103)"/>
+    <ellipse cx="56" cy="100.5" rx="2.4" ry="1.6"/>
+    <ellipse cx="43" cy="107" rx="2.4" ry="1.6" transform="rotate(-50 43 107)"/>
+    <ellipse cx="37" cy="121" rx="1.6" ry="2.4"/>
+    <ellipse cx="42" cy="135" rx="2.4" ry="1.6" transform="rotate(45 42 135)"/>
+    <ellipse cx="56" cy="141.5" rx="2.4" ry="1.6"/>
+    <ellipse cx="70" cy="137" rx="2.4" ry="1.6" transform="rotate(-45 70 137)"/>
+    <ellipse cx="75.5" cy="125" rx="1.6" ry="2.4"/>
+    <ellipse cx="66" cy="116" rx="2.2" ry="1.5" transform="rotate(20 66 116)"/>
+  </g>
+  <!-- cabeza: cuna plana que sale del cuerpo hacia la derecha -->
+  <path fill="#C9B46A" d="M76 116 C77 112 82 110 88 110.5 C93 111 97 113 99 115.5 C100 117 99 118.5 97 118.8 L84 121 C80 121.6 77.5 120 76 116 Z"/>
+  <path fill="#8F8A3E" opacity=".5" d="M78 118 L96 116.5 L97 118.5 L84 120.5 C81 121 79 120 78 118 Z"/>
+  <circle cx="90" cy="113.6" r="1.3" fill="#1A1A0A"/>
+  <path d="M99.5 116.2 L104.5 115 M99.6 117.2 L104.5 118.6" stroke="#E04B4B" stroke-width=".9" stroke-linecap="round"/>
+</g>
+<!-- hojas de primer plano -->
+<g fill="url(#aq-leafA)">
+  <path d="M-12 170 C14 140 56 146 66 184 L-12 184 Z"/>
+  <path d="M132 160 C106 134 66 142 58 184 L132 184 Z"/>
+</g>
+<g stroke="#0B2416" stroke-width=".8" fill="none" opacity=".7">
+  <path d="M-6 170 C14 154 40 154 60 178"/><path d="M126 160 C104 146 80 150 64 178"/>
+</g>
+<rect width="120" height="180" fill="url(#aq-vig)"/>
+<rect width="120" height="180" filter="url(#aq-grain)" opacity=".5"/>
+</svg>`,
+
+/* ===== Black Beauty: pradera a la hora dorada, el caballo negro ===== */
+bb: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="bb-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4A3B5E"/><stop offset=".42" stop-color="#C96A3C"/>
+    <stop offset=".62" stop-color="#F2B35A"/><stop offset=".78" stop-color="#FBE2A2"/></linearGradient>
+  <radialGradient id="bb-sun" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#FFF4D0" stop-opacity=".95"/><stop offset=".4" stop-color="#FFD28A" stop-opacity=".5"/>
+    <stop offset="1" stop-color="#FFD28A" stop-opacity="0"/></radialGradient>
+  <linearGradient id="bb-far" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9A7B5B"/><stop offset="1" stop-color="#6F5A44"/></linearGradient>
+  <linearGradient id="bb-mid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7B8A3E"/><stop offset="1" stop-color="#4F5E28"/></linearGradient>
+  <linearGradient id="bb-near" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C5A24"/><stop offset="1" stop-color="#26301A"/></linearGradient>
+  <radialGradient id="bb-vig" cx="50%" cy="50%" r="75%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>
+  <filter id="bb-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2"/></filter>
+  <filter id="bb-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .08 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#bb-sky)"/>
+<circle cx="84" cy="106" r="46" fill="url(#bb-sun)"/>
+<circle cx="84" cy="106" r="11" fill="#FFF6DE" opacity=".95"/>
+<!-- nubes finas -->
+<g fill="#FBD8A6" opacity=".55" filter="url(#bb-soft)"><ellipse cx="30" cy="70" rx="26" ry="3"/><ellipse cx="70" cy="58" rx="18" ry="2.2"/></g>
+<!-- colinas -->
+<path fill="url(#bb-far)" opacity=".8" d="M0 118 C20 110 40 112 60 108 C80 104 100 108 120 102 L120 180 L0 180 Z"/>
+<path fill="url(#bb-mid)" d="M0 134 C24 124 48 128 72 122 C92 118 108 122 120 118 L120 180 L0 180 Z"/>
+<!-- arboles lejanos -->
+<g fill="#3D4A22" opacity=".8">
+  <ellipse cx="14" cy="128" rx="6" ry="5"/><rect x="13.2" y="128" width="1.6" height="5"/>
+  <ellipse cx="104" cy="118" rx="7" ry="5.5"/><rect x="103.2" y="118" width="1.6" height="6"/>
+</g>
+<!-- el caballo, negro, de perfil, de pie en la loma -->
+<g fill="#0C0A0A" stroke="#0C0A0A" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cuerpo -->
+  <path stroke="none" d="M47 124 C46 112 53 106 63 106 L73 106 C82 106 86 111 86 119 L86 125 C86 129 83 131 79 131 L55 131 C50 131 47 128 47 124 Z"/>
+  <!-- cuello -->
+  <path stroke="none" d="M50 112 C47 106 42 100 38 95 L45 90 C49 96 54 103 58 108 Z"/>
+  <!-- cabeza -->
+  <path stroke="none" d="M38 95 L45 90 C43 86 39 84 35 86 C31 88 27 93 25 99 C24 101.5 25.5 103.5 28 103 L34 101.5 C37 100.5 38.5 98 38 95 Z"/>
+  <!-- orejas -->
+  <path stroke="none" d="M37 87 L36.5 81.5 L40.5 86 Z M41.5 86 L43.5 81 L44.5 86.5 Z"/>
+  <!-- patas -->
+  <path fill="none" stroke-width="3.4" d="M53 130 L52 146 M58.5 130 L58.5 146 M77 130 L78.5 138 L77.5 146 M82.5 130 L84 138 L83.5 146"/>
+  <!-- cola -->
+  <path fill="none" stroke-width="3.6" d="M86 114 C90 118 91 126 89 134"/>
+  <path fill="none" stroke-width="2" d="M88.5 130 C88 136 86.5 140 85 143"/>
+  <!-- crin -->
+  <path fill="none" stroke-width="2.2" d="M44 89 C48 92 52 98 56 105"/>
+</g>
+<!-- ojo y ollar -->
+<circle cx="31.5" cy="93.5" r=".9" fill="#5A4A3A"/>
+<circle cx="26.5" cy="100.5" r=".6" fill="#3A302A"/>
+<!-- lucero en la frente -->
+<path fill="#F6EFE2" d="M35.2 89.6 l.6 1.3 1.3.6 -1.3.6 -.6 1.3 -.6-1.3 -1.3-.6 1.3-.6z"/>
+<ellipse cx="68" cy="146.5" rx="22" ry="2.4" fill="#1E2612" opacity=".5"/>
+<!-- pradera de primer plano con flores -->
+<path fill="url(#bb-near)" d="M0 150 C20 144 40 148 60 144 C84 140 100 146 120 140 L120 180 L0 180 Z"/>
+<g opacity=".9"><circle cx="18" cy="158" r=".9" fill="#F2D06B"/><circle cx="30" cy="166" r=".8" fill="#F2D06B"/><circle cx="44" cy="160" r=".9" fill="#F7F2E6"/><circle cx="66" cy="168" r=".8" fill="#F2D06B"/><circle cx="92" cy="160" r=".9" fill="#F7F2E6"/><circle cx="106" cy="170" r=".8" fill="#F2D06B"/><circle cx="12" cy="172" r=".7" fill="#F7F2E6"/></g>
+<g stroke="#2F3A1C" stroke-width=".6" fill="none" opacity=".8"><path d="M22 176 l1-6 M26 178 l.6-5 M58 176 l1-6 M62 178 l.8-5 M98 176 l1-6 M102 178 l.6-5"/></g>
+<rect width="120" height="180" fill="url(#bb-vig)"/>
+<rect width="120" height="180" filter="url(#bb-grain)" opacity=".5"/>
+</svg>`,
+
+/* ===== Mi planta de naranja-lima: tarde en Bangu, el arbolito en el patio ===== */
+np: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="np-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F6B37A"/><stop offset=".5" stop-color="#F9D9A6"/><stop offset=".8" stop-color="#FBEFD3"/></linearGradient>
+  <linearGradient id="np-hill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B98A5A"/><stop offset="1" stop-color="#8A6240"/></linearGradient>
+  <linearGradient id="np-ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8E5E3B"/><stop offset="1" stop-color="#5C3A22"/></linearGradient>
+  <linearGradient id="np-leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7DBF5A"/><stop offset="1" stop-color="#2F7A3A"/></linearGradient>
+  <linearGradient id="np-leaf2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5AA848"/><stop offset="1" stop-color="#1F5E2C"/></linearGradient>
+  <radialGradient id="np-orange" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#FFD37A"/><stop offset=".55" stop-color="#F28A2E"/><stop offset="1" stop-color="#B9521A"/></radialGradient>
+  <radialGradient id="np-vig" cx="50%" cy="50%" r="75%"><stop offset=".65" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#3A1E0A" stop-opacity=".4"/></radialGradient>
+  <filter id="np-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="9"/>
+    <feColorMatrix values="0 0 0 0 .3  0 0 0 0 .2  0 0 0 0 .1  0 0 0 .1 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#np-sky)"/>
+<circle cx="92" cy="40" r="12" fill="#FFF1C9" opacity=".9"/>
+<circle cx="92" cy="40" r="26" fill="#FFE2A8" opacity=".3"/>
+<!-- cerro con casitas -->
+<path fill="url(#np-hill)" d="M0 112 C30 98 60 104 90 94 C104 90 112 92 120 90 L120 180 L0 180 Z"/>
+<g fill="#F2E3C8">
+  <path d="M14 106 l0 -6 5 -3 5 3 0 6z"/><path d="M34 102 l0 -6 4 -2.6 4 2.6 0 6z"/>
+  <path d="M58 100 l0 -7 5 -3 5 3 0 7z"/><path d="M84 94 l0 -6 4 -2.6 4 2.6 0 6z"/><path d="M100 92 l0 -5 3.5 -2.2 3.5 2.2 0 5z"/>
+</g>
+<g fill="#C0553A"><path d="M14 100 l5 -3 5 3z"/><path d="M34 96 l4 -2.6 4 2.6z"/><path d="M58 93 l5 -3 5 3z"/><path d="M84 88 l4 -2.6 4 2.6z"/><path d="M100 87 l3.5 -2.2 3.5 2.2z"/></g>
+<!-- via del tren -->
+<path d="M0 126 C40 120 80 118 120 112" stroke="#4A3324" stroke-width="1.1" fill="none"/>
+<path d="M0 128.5 C40 122.5 80 120.5 120 114.5" stroke="#4A3324" stroke-width="1.1" fill="none"/>
+<g stroke="#4A3324" stroke-width=".8"><path d="M8 125 l0 4 M20 123.5 l0 4 M32 122 l0 4 M44 121 l0 4 M56 120 l0 4 M68 119 l0 4 M80 118 l0 4 M92 117 l0 4 M104 115.5 l0 4"/></g>
+<!-- tierra del patio -->
+<path fill="url(#np-ground)" d="M0 136 C30 130 70 132 120 126 L120 180 L0 180 Z"/>
+<!-- el arbolito -->
+<path d="M60 170 C60 150 59 140 60 118" stroke="#5C3A22" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+<path d="M60 140 C52 136 46 130 44 122 M60 132 C68 128 74 122 76 114" stroke="#5C3A22" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<g fill="url(#np-leaf2)">
+  <path d="M44 122 C34 118 28 108 31 98 C41 98 50 106 52 116 Z"/>
+  <path d="M76 114 C86 110 92 100 89 90 C79 90 70 98 68 108 Z"/>
+  <path d="M60 118 C50 112 46 100 50 90 C60 91 68 100 70 110 Z"/>
+</g>
+<g fill="url(#np-leaf)">
+  <path d="M47 128 C40 126 36 118 39 112 C46 113 51 120 51 126 Z"/>
+  <path d="M72 122 C80 120 84 112 81 106 C74 107 69 114 69 120 Z"/>
+  <path d="M60 110 C54 104 54 94 60 88 C66 94 66 104 60 110 Z"/>
+</g>
+<g stroke="#1F5E2C" stroke-width=".6" fill="none" opacity=".7">
+  <path d="M44 122 C40 114 38 106 33 99 M76 114 C80 106 82 98 88 91 M60 118 C56 108 54 98 51 91"/>
+</g>
+<!-- naranjas -->
+<g><circle cx="46" cy="118" r="4.2" fill="url(#np-orange)"/><circle cx="74" cy="111" r="3.8" fill="url(#np-orange)"/><circle cx="61" cy="128" r="3.4" fill="url(#np-orange)"/><circle cx="56" cy="100" r="3.2" fill="url(#np-orange)"/></g>
+<!-- sombra -->
+<ellipse cx="60" cy="171" rx="16" ry="2.6" fill="#3A2213" opacity=".35"/>
+<rect width="120" height="180" fill="url(#np-vig)"/>
+<rect width="120" height="180" filter="url(#np-grain)" opacity=".6"/>
+</svg>`,
+
+/* ===== Oliver Twist: niebla, tejados y un farol de gas ===== */
+ot: `<svg viewBox="0 0 120 180" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="ot-sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2B3540"/><stop offset=".6" stop-color="#5C6670"/><stop offset="1" stop-color="#8A9097"/></linearGradient>
+  <radialGradient id="ot-lamp" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#FFE9A8" stop-opacity=".95"/><stop offset=".35" stop-color="#F2C46A" stop-opacity=".45"/>
+    <stop offset="1" stop-color="#F2C46A" stop-opacity="0"/></radialGradient>
+  <linearGradient id="ot-fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B9BFC6" stop-opacity="0"/><stop offset="1" stop-color="#B9BFC6" stop-opacity=".8"/></linearGradient>
+  <radialGradient id="ot-vig" cx="50%" cy="50%" r="75%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>
+  <filter id="ot-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5"/></filter>
+  <filter id="ot-grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2"/>
+    <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .1 0"/></filter>
+</defs>
+<rect width="120" height="180" fill="url(#ot-sky)"/>
+<!-- tejados lejanos, en la niebla -->
+<g fill="#6E7780" opacity=".7">
+  <path d="M0 96 L0 80 L10 72 L20 80 L20 70 L23 70 L23 78 L34 70 L46 80 L46 66 L50 66 L50 80 L60 72 L72 82 L72 70 L75 70 L75 80 L86 72 L98 82 L98 66 L102 66 L102 80 L112 74 L120 80 L120 96 Z"/>
+</g>
+<!-- tejados medios -->
+<g fill="#3E464F">
+  <path d="M0 118 L0 100 L14 90 L28 100 L28 86 L32 86 L32 100 L44 92 L58 102 L58 84 L63 84 L63 102 L76 92 L90 102 L90 88 L94 88 L94 102 L106 94 L120 104 L120 118 Z"/>
+</g>
+<!-- ventanas con luz -->
+<g fill="#E8B75A" opacity=".8"><rect x="18" y="104" width="2" height="3"/><rect x="50" y="106" width="2" height="3"/><rect x="82" y="105" width="2" height="3"/><rect x="110" y="108" width="2" height="3"/></g>
+<!-- humo de chimenea -->
+<g fill="#9AA2AA" opacity=".4" filter="url(#ot-soft)"><ellipse cx="30" cy="80" rx="3" ry="6"/><ellipse cx="61" cy="78" rx="3" ry="7"/></g>
+<!-- banco de niebla -->
+<rect x="0" y="96" width="120" height="40" fill="url(#ot-fog)"/>
+<!-- fachada cercana -->
+<path fill="#1C2229" d="M0 180 L0 120 L34 120 L34 112 L38 112 L38 120 L70 120 L70 180 Z"/>
+<g fill="#F0C56A" opacity=".55"><rect x="10" y="130" width="6" height="8"/><rect x="24" y="130" width="6" height="8"/><rect x="48" y="134" width="6" height="8"/></g>
+<g fill="#0E1216" opacity=".9"><rect x="12.4" y="130" width="1.2" height="8"/><rect x="26.4" y="130" width="1.2" height="8"/><rect x="50.4" y="134" width="1.2" height="8"/><rect x="10" y="133.6" width="6" height="1"/><rect x="24" y="133.6" width="6" height="1"/><rect x="48" y="137.6" width="6" height="1"/></g>
+<!-- empedrado -->
+<path fill="#2A3139" d="M0 180 L0 158 C40 154 80 156 120 150 L120 180 Z"/>
+<g fill="#39414A" opacity=".8"><ellipse cx="14" cy="166" rx="5" ry="1.6"/><ellipse cx="30" cy="170" rx="5" ry="1.6"/><ellipse cx="48" cy="165" rx="5" ry="1.6"/><ellipse cx="68" cy="169" rx="5" ry="1.6"/><ellipse cx="90" cy="163" rx="5" ry="1.6"/><ellipse cx="108" cy="168" rx="5" ry="1.6"/><ellipse cx="22" cy="176" rx="5" ry="1.6"/><ellipse cx="58" cy="176" rx="5" ry="1.6"/><ellipse cx="98" cy="175" rx="5" ry="1.6"/></g>
+<!-- el farol de gas -->
+<circle cx="92" cy="108" r="34" fill="url(#ot-lamp)"/>
+<g fill="#0E1216">
+  <rect x="90.6" y="118" width="2.8" height="44"/>
+  <path d="M86 162 L98 162 L97 166 L87 166 Z"/>
+  <path d="M86.5 118 L97.5 118 L96 108 L88 108 Z"/>
+  <path d="M88 108 L96 108 L92 102 Z"/>
+  <path d="M92 100 l-1.2 2 h2.4z"/>
+</g>
+<path fill="#FFE9A8" opacity=".95" d="M88.8 117 L95.2 117 L94.2 109.5 L89.8 109.5 Z"/>
+<path fill="#FFF8DC" opacity=".9" d="M90.6 116 L93.4 116 L92.9 111 L91.1 111 Z"/>
+<!-- reflejo en el empedrado -->
+<ellipse cx="92" cy="168" rx="16" ry="3" fill="#F2C46A" opacity=".18" filter="url(#ot-soft)"/>
+<rect width="120" height="180" fill="url(#ot-vig)"/>
+<rect width="120" height="180" filter="url(#ot-grain)" opacity=".5"/>
+</svg>`
+};
+
 const BOOKS = [
 {
 id:"bb", lang:"en", title:"Black Beauty", author:"Anna Sewell", voice:"Told by the horse himself",
@@ -3020,39 +3360,50 @@ function markup(text){
 }
 
 /* ============ PASO DE PAGINA ============
-   La pagina sigue al dedo mientras se arrastra y se acomoda al soltar.
-   Si el gesto cruza de capitulo, el actual sale y el nuevo entra por el
-   lado contrario, en vez de aparecer de golpe. */
+   La hoja sigue al dedo mientras se arrastra y se acomoda al soltar.
+   El seguimiento escribe el transform directo (sin transicion CSS: en
+   Safari alternarla en cada movimiento hace que la hoja persiga al dedo
+   con retraso). Las animaciones usan la Web Animations API, que avisa
+   cuando termina sin depender de transitionend. */
 const EASE = "cubic-bezier(.22,.61,.26,1)";
-const DUR_SNAP = 260;   /* volver a su sitio o pasar de pagina */
-const DUR_OUT  = 190;   /* el capitulo que se va */
-const DUR_IN   = 240;   /* el capitulo que llega */
+const DUR_SNAP = 240, DUR_OUT = 170, DUR_IN = 230;
 const noAnim = window.matchMedia("(prefers-reduced-motion:reduce)");
 
-let animating = false, dragging = false;
-let gx = 0, gy = 0, gt = 0, gbase = 0, gdx = 0, gActive = false;
-let gx0 = 0, gy0 = 0, gt0 = 0;
+let animating = false, dragging = false, curAnim = null, justDragged = 0;
+let gx = 0, gy = 0, gbase = 0, gdx = 0, gActive = false, gx0 = 0, gy0 = 0;
+let samples = [];   /* ultimos puntos (t,x) para medir la velocidad final */
 
 function span(){ const m = metrics(); return m.w + m.gap; }
 function xFor(p){ return -p * span(); }
+function curX(){ const m = getComputedStyle(flow).transform; if(!m || m === "none") return 0;
+  const a = m.match(/matrix\(([^)]+)\)/); return a ? parseFloat(a[1].split(",")[4]) : 0; }
 
-function setX(px, ms, op){
-  flow.style.transition = (ms && !noAnim.matches)
-    ? "transform "+ms+"ms "+EASE+", opacity "+ms+"ms ease"
-    : "none";
+function stopAnim(){ if(curAnim){ try{ curAnim.cancel(); }catch(e){} curAnim = null; } }
+
+/* coloca la hoja de golpe */
+function setX(px, op){
+  stopAnim();
+  flow.style.transition = "none";
   flow.style.transform = "translateX("+px+"px)";
   if(op !== undefined) flow.style.opacity = op;
 }
 
-/* corre fn cuando termina la animacion, con red de seguridad por si el
-   evento no llega (pestana en segundo plano, reduced-motion, etc.) */
-function afterAnim(ms, fn){
-  if(!ms || noAnim.matches){ fn(); return; }
+/* anima la hoja hasta px (y opacidad), y llama a fn al terminar */
+function animTo(px, ms, op, fn){
+  const from = { transform:"translateX("+curX()+"px)", opacity:getComputedStyle(flow).opacity };
+  stopAnim();
+  const to = { transform:"translateX("+px+"px)", opacity:(op === undefined ? from.opacity : String(op)) };
+  flow.style.transition = "none";
+  if(noAnim.matches || !flow.animate){ flow.style.transform = to.transform; flow.style.opacity = to.opacity; if(fn) fn(); return; }
   let done = false;
-  const run = ()=>{ if(done) return; done = true;
-    flow.removeEventListener("transitionend", run); fn(); };
-  flow.addEventListener("transitionend", run);
-  setTimeout(run, ms + 90);
+  const finish = ()=>{ if(done) return; done = true;
+    flow.style.transform = to.transform; flow.style.opacity = to.opacity;
+    if(curAnim === a){ try{ a.cancel(); }catch(e){} curAnim = null; }
+    if(fn) fn(); };
+  const a = flow.animate([from, to], { duration:ms, easing:EASE, fill:"forwards" });
+  curAnim = a;
+  a.onfinish = finish;
+  setTimeout(()=>{ if(!done && curAnim === a) finish(); }, ms + 120);
 }
 
 /* pinta el capitulo en el DOM y lo mide, sin tocar la posicion */
@@ -3071,10 +3422,10 @@ function fillChapter(){
 /* abre un capitulo sin animacion: al entrar al libro, desde el indice o el marcador */
 function render(goLast, atPage){
   animating = false; dragging = false;
-  setX(0, 0, 1);
+  setX(0, 1);
   fillChapter();
   page = atPage !== undefined ? Math.min(atPage, pages-1) : (goLast ? pages-1 : 0);
-  setX(xFor(page), 0, 1);
+  setX(xFor(page), 1);
   paintMeta();
 }
 
@@ -3107,35 +3458,31 @@ function paintMeta(){
   save();
 }
 
-function paint(){ setX(xFor(page), DUR_SNAP); paintMeta(); }
+function paint(){ animTo(xFor(page), DUR_SNAP); paintMeta(); }
 
 /* vuelve a maquetar conservando el punto de lectura: al cambiar el tamano
    de letra o al girar el aparato cambia cuanto cabe por pagina */
 function rerender(){
   const frac = pages > 1 ? page/(pages-1) : 0;
   animating = false; dragging = false;
-  setX(0, 0, 1);
+  setX(0, 1);
   fillChapter();
   page = Math.min(pages-1, Math.round(frac*(pages-1)));
-  setX(xFor(page), 0, 1);
+  setX(xFor(page), 1);
   paintMeta();
 }
 
 /* cruce de capitulo: el actual se va, el nuevo llega por el otro lado */
 function turnChapter(dir){
   animating = true;
-  const d = span() * 0.34;
-  setX(xFor(page) - dir*d, DUR_OUT, 0);
-  afterAnim(DUR_OUT, ()=>{
+  const d = span() * 0.3;
+  animTo(xFor(page) - dir*d, DUR_OUT, 0, ()=>{
     chap += dir;
     fillChapter();
     page = dir > 0 ? 0 : pages-1;
-    setX(xFor(page) + dir*d, 0, 0);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      setX(xFor(page), DUR_IN, 1);
-      paintMeta();
-      afterAnim(DUR_IN, ()=>{ animating = false; });
-    }));
+    setX(xFor(page) + dir*d, 0);
+    paintMeta();
+    requestAnimationFrame(()=>{ animTo(xFor(page), DUR_IN, 1, ()=>{ animating = false; }); });
   });
 }
 
@@ -3147,11 +3494,11 @@ function go(dir){
   if(dir > 0){
     if(page < pages-1){ page++; paint(); }
     else if(chap < last) turnChapter(1);
-    else setX(xFor(page), DUR_SNAP);
+    else animTo(xFor(page), DUR_SNAP);
   }else{
     if(page > 0){ page--; paint(); }
     else if(chap > 0) turnChapter(-1);
-    else setX(xFor(page), DUR_SNAP);
+    else animTo(xFor(page), DUR_SNAP);
   }
 }
 function next(){ go(1); }
@@ -3160,11 +3507,9 @@ function prev(){ go(-1); }
 /* ---- arrastre ---- */
 function dragResist(dx){
   const last = BOOKS[book].chapters.length - 1;
-  /* no hay a donde ir: el arrastre casi no cede */
   if((dx > 0 && page === 0 && chap === 0) ||
      (dx < 0 && page === pages-1 && chap === last)) return dx * 0.25;
-  /* hay capitulo al lado, pero su contenido todavia no esta: cede a medias */
-  if((dx > 0 && page === 0) || (dx < 0 && page === pages-1)) return dx * 0.5;
+  if((dx > 0 && page === 0) || (dx < 0 && page === pages-1)) return dx * 0.55;
   return dx;
 }
 
@@ -3172,43 +3517,46 @@ function dragStart(e){
   gActive = !animating && !e.target.closest("#gloss");
   if(!gActive) return;
   const t0 = e.touches[0];
-  gx = t0.clientX; gy = t0.clientY; gt = e.timeStamp;
-  gx0 = t0.clientX; gy0 = t0.clientY; gt0 = e.timeStamp;
+  gx = gx0 = t0.clientX; gy = gy0 = t0.clientY;
   gbase = xFor(page); gdx = 0; dragging = false;
+  samples = [[e.timeStamp, t0.clientX]];
 }
 
 function dragMove(e){
   if(!gActive || animating) return;
   const t0 = e.touches[0];
-  const dx = t0.clientX - gx, dy = t0.clientY - gy;
+  samples.push([e.timeStamp, t0.clientX]);
+  if(samples.length > 6) samples.shift();
   if(!dragging){
-    /* solo tomamos el gesto si es claramente horizontal */
-    if(Math.abs(dx) < 10 || Math.abs(dx) <= Math.abs(dy)) return;
+    const dx = t0.clientX - gx0, dy = t0.clientY - gy0;
+    if(Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
     dragging = true;
-    gt = e.timeStamp; gx = t0.clientX;   /* medir la velocidad desde aqui */
+    gx = t0.clientX;                /* la hoja arranca desde aqui, sin salto */
+    stopAnim(); hideGloss();
+    flow.style.transition = "none";
   }
   gdx = t0.clientX - gx;
-  setX(gbase + dragResist(gdx), 0);
+  flow.style.transform = "translateX("+(gbase + dragResist(gdx))+"px)";
 }
 
 function dragEnd(e){
   if(!gActive) return;
   gActive = false;
   if(!dragging){
-    /* red de seguridad: un flick muy rapido puede no alcanzar a emitir
-       touchmove. Si el dedo recorrio bastante en horizontal, vale igual. */
     const ft = e.changedTouches[0];
     const dx = ft.clientX - gx0, dy = ft.clientY - gy0;
     if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
     return;
   }
   dragging = false;
-  const dt = Math.max(1, e.timeStamp - gt);
-  const vel = Math.abs(gdx) / dt;              /* px por ms */
-  const lejos = Math.abs(gdx) > span() * 0.2;
-  const rapido = vel > 0.35 && Math.abs(gdx) > 12;
+  justDragged = e.timeStamp;        /* el click sintetico que sigue no debe abrir el glosario */
+  const a = samples[0], b = samples[samples.length-1];
+  const vel = (b[1] - a[1]) / Math.max(1, b[0] - a[0]);    /* px/ms en el ultimo tramo, con signo */
+  const w = span();
+  const lejos  = Math.abs(gdx) > w * 0.2;
+  const rapido = Math.abs(vel) > 0.3 && Math.sign(vel) === Math.sign(gdx) && Math.abs(gdx) > 10;
   if(lejos || rapido) go(gdx < 0 ? 1 : -1);
-  else setX(xFor(page), DUR_SNAP);
+  else animTo(xFor(page), DUR_SNAP);
 }
 
 /* glossary card */
@@ -3304,20 +3652,17 @@ function buildShelf(){
     const es = b.lang === "es";
     /* el texto de cada libro va en su propio idioma: así el lector no se sale del inglés */
     const label = started
-      ? (es ? "Seguir en el capítulo "+(p.chap+1)+" de "+b.chapters.length
-            : "Continue at chapter "+(p.chap+1)+" of "+b.chapters.length)
-      : (es ? "Empezar · "+b.chapters.length+" secciones"
-            : "Start reading · "+b.chapters.length+" chapters");
+      ? (es ? "Vas en el cap. "+(p.chap+1)+" de "+b.chapters.length
+            : "Chapter "+(p.chap+1)+" of "+b.chapters.length)
+      : (es ? b.chapters.length+" secciones"
+            : b.chapters.length+" chapters");
     return '<button class="card" data-b="'+i+'" data-tint="'+b.id+'">'
-      + '<div class="card-in">'
-      +   '<div class="cover" aria-hidden="true"><em>'+esc(inicial(b.title))+'</em></div>'
-      +   '<div><h3>'+esc(b.title)+'</h3>'
+      +   '<div class="cover" aria-hidden="true">'+(COVERS[b.id]||'')+'</div>'
+      +   '<h3>'+esc(b.title)+'</h3>'
       +     '<div class="by">'+esc(b.author)+'</div>'
       +     '<div class="voice">'+esc(b.voice)+'</div>'
       +     '<div class="meta'+(started?"":" fresh")+'">'+label+'</div>'
       +     (mk ? '<div class="mark"><b><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M3.6 2.3h8.8v11.4L8 10.4l-4.4 3.3z\"/></svg></b> '+(es?"Marcador en el capítulo ":"Bookmark in chapter ")+(mk.chap+1)+'</div>' : '')
-      +   '</div>'
-      + '</div>'
       + '<div class="cardbar"><i style="width:'+(p.frac*100).toFixed(1)+'%"></i></div>'
       + '</button>';
   }).join("");
@@ -3412,6 +3757,7 @@ $("#tocList").onclick = e=>{
 };
 
 flow.addEventListener("click", e=>{
+  if(justDragged && e.timeStamp - justDragged < 500){ justDragged = 0; return; }
   const w = e.target.closest(".w");
   if(w){ e.stopPropagation(); showGloss(w); }
   else hideGloss();
@@ -3457,7 +3803,7 @@ $("#stage").addEventListener("touchstart", dragStart, {passive:true});
 $("#stage").addEventListener("touchmove",  dragMove,  {passive:true});
 $("#stage").addEventListener("touchend",   dragEnd,   {passive:true});
 $("#stage").addEventListener("touchcancel", e=>{
-  if(dragging){ dragging = false; setX(xFor(page), DUR_SNAP); }
+  if(dragging){ dragging = false; animTo(xFor(page), DUR_SNAP); }
   gActive = false;
 }, {passive:true});
 
