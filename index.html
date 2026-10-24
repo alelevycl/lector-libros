@@ -31,6 +31,9 @@
     height:100%;margin:0;
     position:fixed;inset:0;width:100%;
     overflow:hidden;overscroll-behavior:none;
+    /* sin zoom por doble toque: el tamano se cambia con A- / A+ */
+    touch-action:manipulation;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
   }
   body{
     background:var(--bg);
@@ -3211,6 +3214,26 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowLeft"){ e.preventDefault(); prev(); }
   if(e.key==="Escape"){ hideGloss(); $("#toc").classList.remove("open"); }
 });
+
+/* ---- sin zoom: ni doble toque ni pellizco ----
+   iOS ignora user-scalable=no desde iOS 10, asi que hay que bloquearlo a mano.
+   El tamano de letra se cambia con A- / A+, no con los dedos.
+   Los controles (botones, fichas, tarjetas, palabras del glosario) quedan fuera
+   del bloqueo para que dos toques seguidos en "Seguir" pasen las dos paginas. */
+const CTRL = "button, .chip, .card, .w, .list > *, a, [role=button]";
+let tapT = 0, tapX = 0, tapY = 0;
+document.addEventListener("touchend", e=>{
+  if(e.touches.length) return;
+  const t = e.changedTouches[0], now = Date.now();
+  const mismoPunto = Math.abs(t.clientX - tapX) < 36 && Math.abs(t.clientY - tapY) < 36;
+  if(now - tapT < 350 && mismoPunto && !(e.target.closest && e.target.closest(CTRL))){
+    e.preventDefault();
+  }
+  tapT = now; tapX = t.clientX; tapY = t.clientY;
+}, {passive:false});
+document.addEventListener("dblclick", e=>{ e.preventDefault(); }, {passive:false});
+document.addEventListener("gesturestart", e=>{ e.preventDefault(); }, {passive:false});
+document.addEventListener("gesturechange", e=>{ e.preventDefault(); }, {passive:false});
 
 $("#stage").addEventListener("touchmove", e=>{ e.preventDefault(); }, {passive:false});
 document.addEventListener("touchmove", e=>{
