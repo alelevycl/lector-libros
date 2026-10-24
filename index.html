@@ -3804,19 +3804,22 @@ function openBook(i){
 }
 
 /* optional resume */
+/* El avance se guarda SOLO en este navegador (localStorage), nunca en un
+   servidor ni en un almacenamiento compartido: cada telefono o tablet lleva
+   su propio registro, aunque dos personas lean el mismo libro a la vez. */
 const KEY = "readinglamp-v2";
-let memStore = null;
+let memStore = null;   /* respaldo en memoria si el navegador bloquea localStorage */
 
 function writeStore(v){
   memStore = v;
   try{ localStorage.setItem(KEY, v); }catch(e){}
-  try{ if(window.storage) window.storage.set(KEY, v); }catch(e){}
 }
 async function readStore(){
   try{ const v = localStorage.getItem(KEY); if(v) return v; }catch(e){}
-  try{ if(window.storage){ const r = await window.storage.get(KEY); if(r && r.value) return r.value; } }catch(e){}
   return memStore;
 }
+/* pide al navegador que no borre estos datos por falta de espacio o inactividad */
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 async function save(){
   me().size = size; me().theme = theme;
