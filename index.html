@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Reading Lamp — Seis guías de lectura</title>
+<title>Reading Lamp — Guías de lectura</title>
 <meta name="theme-color" content="#0F141B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -150,23 +150,6 @@
   /* readers + bookmark */
   .icon.on{border-color:var(--brass);color:var(--brass)}
   #btnMark.on svg{fill:var(--brass)}
-  #who{margin:6px 0 8px}
-  .who-q{font-size:20px;margin:0 0 14px}
-  .who-row{display:flex;gap:14px}
-  .who-btn{
-    flex:1;font-family:var(--ui);font-size:22px;font-weight:500;
-    padding:26px 18px;border-radius:14px;background:var(--panel);
-    border:1px solid var(--rule);color:var(--ink);
-  }
-  .who-btn:active{border-color:var(--brass)}
-  /* quién lee: un par de fichas en la barra superior */
-  .chips{display:flex;gap:6px;align-items:center;flex:0 0 auto}
-  .chip{
-    font:600 13px/1 var(--ui);
-    padding:8px 14px;border-radius:99px;color:var(--dim);
-    border-color:transparent;
-  }
-  .chip.on{background:var(--brass);border-color:var(--brass);color:var(--bg)}
   .mark{
     font:600 12px/1.4 var(--ui);
     color:var(--dim);margin-top:8px;
@@ -395,18 +378,9 @@
 <div id="home">
   <div class="topbar">
     <div class="wordmark">Reading Lamp</div>
-    <div class="chips" id="chips"></div>
   </div>
   <div class="home-in">
-    <div id="who">
-      <p class="who-q">¿Quién está leyendo?</p>
-      <div class="who-row">
-        <button class="who-btn" data-u="m">Mauricio</button>
-        <button class="who-btn" data-u="g">Gabriel</button>
-      </div>
-    </div>
-
-    <div id="shelfWrap" hidden>
+    <div id="shelfWrap">
       <h1 class="lede" id="lede"></h1>
       <div id="shelf"></div>
       <p class="hint">Las palabras con puntitos se tocan y te dicen qué significan, en inglés y en español. Para pasar de página, desliza con el dedo o usa los botones de abajo.</p>
@@ -3473,7 +3447,6 @@ let book = 0, chap = 0, page = 0, pages = 1, theme = 0;
 let size = (window.innerWidth >= 760) ? 22 : 20;
 const THEMES = ["ink","amber"];
 
-const NAMES = { m:"Mauricio", g:"Gabriel" };
 const T = {
   en:{ chap:"Chapter", page:"Page", spread:"Spread", of:"of",
        back:"Back", next:"Next", toc:"Chapters in this book", close:"Close",
@@ -3488,11 +3461,12 @@ function blank(){
   BOOKS.forEach(b=>{ p[b.id] = {chap:0,frac:0}; });
   return { pos:p, marks:{}, size:size, theme:0 };
 }
+/* una sola biblioteca: un solo registro de avance, marcadores y preferencias */
 let readers = null;   // built after BOOKS is defined
-let user = null;
-const me = () => readers[user] || readers.m;
+const user = "u";
+const me = () => readers.u;
 let live = false;   // true solo cuando el lector abrió un libro de verdad
-function initReaders(){ readers = { m:blank(), g:blank() }; }
+function initReaders(){ readers = { u:blank() }; }
 
 const $ = s => document.querySelector(s);
 const flow = $("#flow"), vp = $("#viewport"), gloss = $("#gloss");
@@ -3783,21 +3757,16 @@ function buildToc(){
 }
 
 /* library home */
-function buildChips(){
-  $("#chips").innerHTML = Object.keys(NAMES).map(u=>
-    '<button class="chip'+(u===user?" on":"")+'" data-u="'+u+'">'+NAMES[u]+'</button>').join("");
-}
-/* la letra de la tapa: la inicial del título, sin el artículo inicial en inglés */
-function inicial(t){
-  return t.replace(/^(the|a|an)\s+/i, "").charAt(0).toUpperCase();
-}
 function buildShelf(){
   const empezados = BOOKS.filter(b=>((me().pos[b.id]||{}).frac||0) > 0.001).length;
   $("#lede").textContent = empezados
     ? "Vas por "+empezados+" de "+BOOKS.length+" libros."
-    : "Seis libros, un capítulo a la vez.";
+    : "Un capítulo a la vez.";
 
-  $("#shelf").innerHTML = BOOKS.map((b,i)=>{
+  /* los libros se agregan al final de BOOKS, asi que se muestran al reves:
+     el mas nuevo siempre queda arriba */
+  const orden = BOOKS.map((b,i)=>i).reverse();
+  $("#shelf").innerHTML = orden.map(i=>{ const b = BOOKS[i];
     const p = me().pos[b.id] || {chap:0,frac:0};
     const mk = me().marks[b.id];
     const started = p.frac > 0.001;
@@ -3821,9 +3790,7 @@ function buildShelf(){
 }
 function openHome(){
   live = false;
-  $("#who").hidden = !!user;
-  $("#shelfWrap").hidden = !user;
-  if(user){ buildChips(); buildShelf(); }
+  buildShelf();
   $("#home").classList.add("open");
   $("#toc").classList.remove("open");
   hideGloss();
@@ -3834,14 +3801,6 @@ function openBook(i){
   chap = Math.min((me().pos[BOOKS[i].id]||{}).chap || 0, BOOKS[i].chapters.length-1);
   $("#home").classList.remove("open");
   render(false);
-}
-function setUser(u){
-  user = u;
-  size = me().size || size;
-  theme = me().theme || 0;
-  document.documentElement.dataset.theme = THEMES[theme];
-  save();
-  openHome();
 }
 
 /* optional resume */
@@ -3860,22 +3819,36 @@ async function readStore(){
 }
 
 async function save(){
-  if(user){ me().size = size; me().theme = theme; }
-  try{ writeStore(JSON.stringify({user,book,readers})); }catch(e){}
+  me().size = size; me().theme = theme;
+  try{ writeStore(JSON.stringify({book, readers})); }catch(e){}
 }
 async function load(){
   try{
     const raw = await readStore();
     if(raw){
       const s = JSON.parse(raw);
-      if(s.readers){
-        ["m","g"].forEach(u=>{
-          if(s.readers[u]) readers[u] = Object.assign(blank(), s.readers[u]);
+      if(s.readers && s.readers.u){
+        readers.u = Object.assign(blank(), s.readers.u);
+        readers.u.pos = Object.assign(blank().pos, s.readers.u.pos || {});
+      }else if(s.readers){
+        /* venia de la version con perfiles: se funden en uno. Para cada libro
+           se conserva el avance y el marcador del perfil que iba mas adelante */
+        const viejos = ["m","g"].map(k=>s.readers[k]).filter(Boolean);
+        const u = blank();
+        BOOKS.forEach(b=>{
+          let mejor = null;
+          viejos.forEach(r=>{ const pp = (r.pos||{})[b.id];
+            if(pp && (!mejor || (pp.frac||0) > ((mejor.pos||{})[b.id].frac||0))) mejor = r; });
+          if(mejor){ u.pos[b.id] = mejor.pos[b.id];
+            const mk = (mejor.marks||{})[b.id] || viejos.map(r=>(r.marks||{})[b.id]).find(Boolean);
+            if(mk) u.marks[b.id] = mk; }
         });
+        const pref = s.readers[s.user] || viejos[0];
+        if(pref){ u.size = pref.size || u.size; u.theme = pref.theme || 0; }
+        readers.u = u;
       }
-      if(s.user && NAMES[s.user]) user = s.user;
       if(typeof s.book==="number" && BOOKS[s.book]) book = s.book;
-      if(user){ size = me().size || size; theme = me().theme || 0; }
+      size = me().size || size; theme = me().theme || 0;
     }
   }catch(e){}
 }
@@ -3890,14 +3863,11 @@ $("#btnHome").onclick = openHome;
 $("#shelf").onclick = e=>{ const c = e.target.closest(".card"); if(c) openBook(+c.dataset.b); };
 $("#btnReset").onclick = ()=>{
   const keep = { size:size, theme:theme };
-  readers[user] = Object.assign(blank(), keep);
-  readers[user].pos = blank().pos;
+  readers.u = Object.assign(blank(), keep);
   chap = 0; page = 0; save(); buildShelf();
   toast("Avance borrado");
 };
 $("#btnMark").onclick = toggleMark;
-$("#who").onclick = e=>{ const b = e.target.closest(".who-btn"); if(b) setUser(b.dataset.u); };
-$("#chips").onclick = e=>{ const c = e.target.closest(".chip"); if(c && c.dataset.u!==user) setUser(c.dataset.u); };
 $("#btnToc").onclick = ()=>{ buildToc(); $("#toc").classList.add("open"); };
 $("#btnClose").onclick = ()=> $("#toc").classList.remove("open");
 $("#tocList").onclick = e=>{
