@@ -112,9 +112,10 @@
     column-fill:auto;
     font-size:var(--size);
     line-height:var(--lh);
-    transition:transform .26s cubic-bezier(.3,.7,.3,1);
+    will-change:transform;
+    /* la transicion la pone el JS: durante el arrastre la pagina sigue
+       al dedo y no debe animar; al soltar, si */
   }
-  @media (prefers-reduced-motion:reduce){#flow{transition:none}}
   #flow h2{
     font-size:1.3em;line-height:1.24;font-weight:700;letter-spacing:-.005em;margin:0 0 .1em;
     break-after:avoid;
@@ -3018,7 +3019,44 @@ function markup(text){
   }).join("");
 }
 
-function render(goLast){
+/* ============ PASO DE PAGINA ============
+   La pagina sigue al dedo mientras se arrastra y se acomoda al soltar.
+   Si el gesto cruza de capitulo, el actual sale y el nuevo entra por el
+   lado contrario, en vez de aparecer de golpe. */
+const EASE = "cubic-bezier(.22,.61,.26,1)";
+const DUR_SNAP = 260;   /* volver a su sitio o pasar de pagina */
+const DUR_OUT  = 190;   /* el capitulo que se va */
+const DUR_IN   = 240;   /* el capitulo que llega */
+const noAnim = window.matchMedia("(prefers-reduced-motion:reduce)");
+
+let animating = false, dragging = false;
+let gx = 0, gy = 0, gt = 0, gbase = 0, gdx = 0, gActive = false;
+let gx0 = 0, gy0 = 0, gt0 = 0;
+
+function span(){ const m = metrics(); return m.w + m.gap; }
+function xFor(p){ return -p * span(); }
+
+function setX(px, ms, op){
+  flow.style.transition = (ms && !noAnim.matches)
+    ? "transform "+ms+"ms "+EASE+", opacity "+ms+"ms ease"
+    : "none";
+  flow.style.transform = "translateX("+px+"px)";
+  if(op !== undefined) flow.style.opacity = op;
+}
+
+/* corre fn cuando termina la animacion, con red de seguridad por si el
+   evento no llega (pestana en segundo plano, reduced-motion, etc.) */
+function afterAnim(ms, fn){
+  if(!ms || noAnim.matches){ fn(); return; }
+  let done = false;
+  const run = ()=>{ if(done) return; done = true;
+    flow.removeEventListener("transitionend", run); fn(); };
+  flow.addEventListener("transitionend", run);
+  setTimeout(run, ms + 90);
+}
+
+/* pinta el capitulo en el DOM y lo mide, sin tocar la posicion */
+function fillChapter(){
   const b = BOOKS[book], c = b.chapters[chap];
   $("#hBook").textContent = b.title;
   $("#hChap").textContent = (chap+1)+". "+c.t;
@@ -3026,14 +3064,18 @@ function render(goLast){
   flow.innerHTML = '<h2><span class="num">'+t().chap+' '+(chap+1)+'</span>'+esc(c.t)+"</h2>"+markup(c.x)+'<hr class="rule">';
   $("#btnPrev").querySelector(".lab").textContent = t().back;
   $("#btnNext").querySelector(".lab").textContent = t().next;
-  flow.style.transition = "none";
-  flow.style.transform = "translateX(0)";
   hideGloss();
-  requestAnimationFrame(()=>{
-    measure();
-    page = goLast ? pages-1 : 0;
-    requestAnimationFrame(()=>{ flow.style.transition=""; paint(); });
-  });
+  measure();
+}
+
+/* abre un capitulo sin animacion: al entrar al libro, desde el indice o el marcador */
+function render(goLast, atPage){
+  animating = false; dragging = false;
+  setX(0, 0, 1);
+  fillChapter();
+  page = atPage !== undefined ? Math.min(atPage, pages-1) : (goLast ? pages-1 : 0);
+  setX(xFor(page), 0, 1);
+  paintMeta();
 }
 
 function metrics(){
@@ -3052,13 +3094,11 @@ function measure(){
   pages = Math.max(1, Math.round((flow.scrollWidth + m.gap) / (m.w + m.gap)));
 }
 
-function paint(){
+function paintMeta(){
+  const b = BOOKS[book], L = t();
+  /* el capitulo lo dice la cabecera; aqui solo la pagina, para que nunca se corte */
   const m = metrics();
-  flow.style.transform = "translateX("+(-page*(m.w+m.gap))+"px)";
-  const b = BOOKS[book];
-  const L = t();
-  /* el capítulo lo dice la cabecera; aquí solo la página, para que nunca se corte */
-  const unit = metrics().col < metrics().w ? L.spread : L.page;
+  const unit = m.col < m.w ? L.spread : L.page;
   $("#count").textContent = pages > 1 ? unit+" "+(page+1)+" "+L.of+" "+pages : "";
   const done = (chap + (page+1)/pages) / b.chapters.length;
   $("#prog").style.width = (done*100).toFixed(1)+"%";
@@ -3067,15 +3107,108 @@ function paint(){
   save();
 }
 
-function next(){
-  hideGloss();
-  if(page < pages-1){ page++; paint(); }
-  else if(chap < BOOKS[book].chapters.length-1){ chap++; render(false); }
+function paint(){ setX(xFor(page), DUR_SNAP); paintMeta(); }
+
+/* vuelve a maquetar conservando el punto de lectura: al cambiar el tamano
+   de letra o al girar el aparato cambia cuanto cabe por pagina */
+function rerender(){
+  const frac = pages > 1 ? page/(pages-1) : 0;
+  animating = false; dragging = false;
+  setX(0, 0, 1);
+  fillChapter();
+  page = Math.min(pages-1, Math.round(frac*(pages-1)));
+  setX(xFor(page), 0, 1);
+  paintMeta();
 }
-function prev(){
+
+/* cruce de capitulo: el actual se va, el nuevo llega por el otro lado */
+function turnChapter(dir){
+  animating = true;
+  const d = span() * 0.34;
+  setX(xFor(page) - dir*d, DUR_OUT, 0);
+  afterAnim(DUR_OUT, ()=>{
+    chap += dir;
+    fillChapter();
+    page = dir > 0 ? 0 : pages-1;
+    setX(xFor(page) + dir*d, 0, 0);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      setX(xFor(page), DUR_IN, 1);
+      paintMeta();
+      afterAnim(DUR_IN, ()=>{ animating = false; });
+    }));
+  });
+}
+
+/* dir: 1 avanzar, -1 retroceder */
+function go(dir){
+  if(animating) return;
   hideGloss();
-  if(page > 0){ page--; paint(); }
-  else if(chap > 0){ chap--; render(true); }
+  const last = BOOKS[book].chapters.length - 1;
+  if(dir > 0){
+    if(page < pages-1){ page++; paint(); }
+    else if(chap < last) turnChapter(1);
+    else setX(xFor(page), DUR_SNAP);
+  }else{
+    if(page > 0){ page--; paint(); }
+    else if(chap > 0) turnChapter(-1);
+    else setX(xFor(page), DUR_SNAP);
+  }
+}
+function next(){ go(1); }
+function prev(){ go(-1); }
+
+/* ---- arrastre ---- */
+function dragResist(dx){
+  const last = BOOKS[book].chapters.length - 1;
+  /* no hay a donde ir: el arrastre casi no cede */
+  if((dx > 0 && page === 0 && chap === 0) ||
+     (dx < 0 && page === pages-1 && chap === last)) return dx * 0.25;
+  /* hay capitulo al lado, pero su contenido todavia no esta: cede a medias */
+  if((dx > 0 && page === 0) || (dx < 0 && page === pages-1)) return dx * 0.5;
+  return dx;
+}
+
+function dragStart(e){
+  gActive = !animating && !e.target.closest("#gloss");
+  if(!gActive) return;
+  const t0 = e.touches[0];
+  gx = t0.clientX; gy = t0.clientY; gt = e.timeStamp;
+  gx0 = t0.clientX; gy0 = t0.clientY; gt0 = e.timeStamp;
+  gbase = xFor(page); gdx = 0; dragging = false;
+}
+
+function dragMove(e){
+  if(!gActive || animating) return;
+  const t0 = e.touches[0];
+  const dx = t0.clientX - gx, dy = t0.clientY - gy;
+  if(!dragging){
+    /* solo tomamos el gesto si es claramente horizontal */
+    if(Math.abs(dx) < 10 || Math.abs(dx) <= Math.abs(dy)) return;
+    dragging = true;
+    gt = e.timeStamp; gx = t0.clientX;   /* medir la velocidad desde aqui */
+  }
+  gdx = t0.clientX - gx;
+  setX(gbase + dragResist(gdx), 0);
+}
+
+function dragEnd(e){
+  if(!gActive) return;
+  gActive = false;
+  if(!dragging){
+    /* red de seguridad: un flick muy rapido puede no alcanzar a emitir
+       touchmove. Si el dedo recorrio bastante en horizontal, vale igual. */
+    const ft = e.changedTouches[0];
+    const dx = ft.clientX - gx0, dy = ft.clientY - gy0;
+    if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+    return;
+  }
+  dragging = false;
+  const dt = Math.max(1, e.timeStamp - gt);
+  const vel = Math.abs(gdx) / dt;              /* px por ms */
+  const lejos = Math.abs(gdx) > span() * 0.2;
+  const rapido = vel > 0.35 && Math.abs(gdx) > 12;
+  if(lejos || rapido) go(gdx < 0 ? 1 : -1);
+  else setX(xFor(page), DUR_SNAP);
 }
 
 /* glossary card */
@@ -3120,19 +3253,7 @@ function goMark(bi){
   book = bi; chap = Math.min(m.chap, BOOKS[bi].chapters.length-1);
   $("#home").classList.remove("open");
   $("#toc").classList.remove("open");
-  const b = BOOKS[book], c = b.chapters[chap];
-  $("#hBook").textContent = b.title;
-  $("#hChap").textContent = (chap+1)+". "+c.t;
-  document.documentElement.style.setProperty("--size", size+"px");
-  flow.innerHTML = '<h2><span class="num">'+t().chap+' '+(chap+1)+'</span>'+esc(c.t)+"</h2>"+markup(c.x)+'<hr class="rule">';
-  $("#btnPrev").querySelector(".lab").textContent = t().back;
-  $("#btnNext").querySelector(".lab").textContent = t().next;
-  flow.style.transition = "none"; flow.style.transform = "translateX(0)"; hideGloss();
-  requestAnimationFrame(()=>{
-    measure();
-    page = Math.min(m.page, pages-1);
-    requestAnimationFrame(()=>{ flow.style.transition=""; paint(); });
-  });
+  render(false, m.page);
 }
 let tt;
 function toast(msg){
@@ -3265,8 +3386,8 @@ async function load(){
 /* events */
 $("#btnNext").onclick = next;
 $("#btnPrev").onclick = prev;
-$("#btnBig").onclick = ()=>{ size = Math.min(32, size+2); render(false); };
-$("#btnSmall").onclick = ()=>{ size = Math.max(16, size-2); render(false); };
+$("#btnBig").onclick = ()=>{ size = Math.min(32, size+2); rerender(); };
+$("#btnSmall").onclick = ()=>{ size = Math.max(16, size-2); rerender(); };
 $("#btnTheme").onclick = ()=>{ theme = (theme+1)%THEMES.length; document.documentElement.dataset.theme = THEMES[theme]; save(); };
 $("#btnHome").onclick = openHome;
 $("#shelf").onclick = e=>{ const c = e.target.closest(".card"); if(c) openBook(+c.dataset.b); };
@@ -3332,19 +3453,16 @@ document.addEventListener("touchmove", e=>{
   if(!e.target.closest("#home, .list, #gloss")) e.preventDefault();
 }, {passive:false});
 
-let sx=0, sy=0, swipeOk=true;
-$("#stage").addEventListener("touchstart", e=>{
-  sx=e.touches[0].clientX; sy=e.touches[0].clientY;
-  swipeOk = !e.target.closest("#gloss");   /* arrastrar dentro del panel no pasa de página */
-}, {passive:true});
-$("#stage").addEventListener("touchend", e=>{
-  if(!swipeOk) return;
-  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
-  if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){ dx < 0 ? next() : prev(); }
+$("#stage").addEventListener("touchstart", dragStart, {passive:true});
+$("#stage").addEventListener("touchmove",  dragMove,  {passive:true});
+$("#stage").addEventListener("touchend",   dragEnd,   {passive:true});
+$("#stage").addEventListener("touchcancel", e=>{
+  if(dragging){ dragging = false; setX(xFor(page), DUR_SNAP); }
+  gActive = false;
 }, {passive:true});
 
 let rt;
-window.addEventListener("resize", ()=>{ clearTimeout(rt); rt = setTimeout(()=>render(false), 180); });
+window.addEventListener("resize", ()=>{ clearTimeout(rt); rt = setTimeout(rerender, 180); });
 
 /* start */
 (async()=>{
